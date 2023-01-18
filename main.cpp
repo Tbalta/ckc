@@ -7,8 +7,8 @@ int main(void)
 {
     auto file = std::ifstream("test.kc");
     Lexer::TokenStream ts(file);
-    Parser::Node node = Parser::parse(ts);
+    std::unique_ptr<Parser::NodeStatement> nodeMain = Parser::parseStatement(ts);
     visitor::PrintVisitor pv;
-    node.accept(pv);
+    nodeMain->accept(pv);
     return 0;
 }

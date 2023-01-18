@@ -6,69 +6,32 @@
 namespace Parser
 {
 
-    NodeIf parseIf(const Lexer::Token &t, Lexer::TokenStream &ts)
+    std::unique_ptr<NodeIf> parseIf(const Lexer::Token &t, Lexer::TokenStream &ts)
     {
-        NodeIf node;
-        node.token = t;
-        node.condition = parse(ts);
-        Node thenStr = parse(ts);
-        assert(thenStr.value == "then");
-        node.thenStatement = parse(ts);
-        Node fiStr = parse(ts);
-        if (fiStr.value == "else")
+        auto condition = parseExpression(ts);
+        std::string thenStr = ts.get().value;
+        assert(thenStr == "then");
+        auto thenStatement = parseStatement(ts);
+        std::string fiStr = ts.get().value;
+        std::optional<std::unique_ptr<NodeStatement>> elseStatement = std::nullopt;
+        if (fiStr == "else")
         {
-            node.elseStatement = parse(ts);
-            fiStr = parse(ts);
+            elseStatement = parseStatement(ts);
+            fiStr = ts.get().value;
         }
-        assert(fiStr.value == "fi");
-        return node;
+        assert(fiStr == "fi");
+        return std::make_unique<NodeIf>(std::move(condition), std::move(thenStatement), std::move(elseStatement));
     }
 
-    NodeGoto parseGoto(const Lexer::Token &t, Lexer::TokenStream &ts)
+    std::unique_ptr<NodeGoto> parseGoto(const Lexer::Token &t, Lexer::TokenStream &ts)
     {
-        NodeGoto node;
-        node.token = t;
-        node.label = parse(ts);
-        return node;
+        return std::make_unique<NodeGoto>(ts.get().value);
     }
 
-    Node parseKeyword(const Lexer::Token &t, Lexer::TokenStream &ts)
+    std::unique_ptr<NodeNumber> parseNumber(const Lexer::Token &t)
     {
-        if (t.value == "if")
-            return parseIf(t, ts);
-        if (t.value == "goto")
-            return parseGoto(t, ts);
-        return Node(t.value);
-    }
-
-    Node parseParenthesis(Lexer::TokenStream &ts)
-    {
-        Node node = parse(ts);
-        Node endParenthesis = parse(ts);
-        assert(endParenthesis.value == ")");
-        return node;
-    }
-
-    NodeBinOperator parseBinOperator(const Lexer::Token &t)
-    {
-        NodeBinOperator node;
-        node.token = t;
-        return node;
-    }
-
-    Node parseNumber(const Lexer::Token &t, Lexer::TokenStream &ts)
-    {
-        Node node;
-        node.token = t;
-        if (ts.peek().type == Lexer::TokenType::OPERATOR)
-        {
-            NodeBinOperator binOp;
-            binOp.value = ts.get().value;
-            binOp.left = node;
-            binOp.right = parse(ts);
-            return binOp;
-        }
-        return node;
+        int value = std::stoi(t.value);
+        return std::make_unique<NodeNumber>(value);
     }
 
     Node parseIdentifier(const Lexer::Token &t)
@@ -78,21 +41,48 @@ namespace Parser
         return node;
     }
 
-    Node parse(Lexer::TokenStream &ts)
+    std::unique_ptr<NodeStatement> parseStatement(Lexer::TokenStream &ts)
     {
         const Lexer::Token t = ts.get();
         switch (t.type)
         {
-        case Lexer::TokenType::KEYWORD:
-            return parseKeyword(t, ts);
-        case Lexer::TokenType::OPERATOR:
-            return parseBinOperator(t);
-        case Lexer::TokenType::PARENTHESIS:
-            return parseParenthesis(ts);
-        case Lexer::TokenType::NUMBER:
-            return parseNumber(t, ts);
-        case Lexer::TokenType::IDENTIFIER:
-            return parseIdentifier(t);
+        case Lexer::TokenType::KEYWORD_IF:
+            return parseIf(t, ts);
+        case Lexer::TokenType::KEYWORD_GOTO:
+            return parseGoto(t, ts);
         }
+    }
+
+    std::unique_ptr<NodeExpression> parseMul(Lexer::TokenStream &ts)
+    {
+        Lexer::Token t = ts.peek();
+        // mul -> term mul'
+        std::unique_ptr<NodeExpression> term;
+        if (t.type == Lexer::TokenType::NUMBER)
+        {
+            term = parseNumber(ts.get());
+        }
+        // while t is a * or / parseMul
+        t = ts.peek();
+        while (t.type == Lexer::TokenType::OPERATOR_MUL || t.type == Lexer::TokenType::OPERATOR_DIV)
+        {
+            std::string op = ts.get().value;
+            std::unique_ptr<NodeExpression> right = parseNumber(ts.get());
+            term = std::make_unique<NodeBinOperator>(std::move(term), std::move(right), op);
+            t = ts.peek();
+        }
+        return term;
+    }
+
+    std::unique_ptr<NodeExpression> parseExpression(Lexer::TokenStream &ts)
+    {
+        std::unique_ptr<NodeExpression> left = parseMul(ts);
+        while (ts.peek().type == Lexer::TokenType::OPERATOR_ADD || ts.peek().type == Lexer::TokenType::OPERATOR_SUB)
+        {
+            std::string op = ts.get().value;
+            std::unique_ptr<NodeExpression> right = parseMul(ts);
+            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), std::move(op));
+        }
+        return left;
     }
 }

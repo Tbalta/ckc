@@ -1,0 +1,8 @@
+*.d
+*.o
+main
+*.s
+.vscode
+*.txt
+toy*
+*.kc

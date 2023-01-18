@@ -25,15 +25,15 @@ namespace Lexer
 
     // List of tokens should not be modified after initialization
     const static std::map<std::string, Token> builtinToken{
-        {"if", Token(TokenType::KEYWORD, "if")},
+        {"if", Token(TokenType::KEYWORD_IF, "if")},
         {"then", Token(TokenType::KEYWORD, "then")},
         {"else", Token(TokenType::KEYWORD, "else")},
         {"fi", Token(TokenType::KEYWORD, "fi")},
-        {"goto", Token(TokenType::KEYWORD, "goto")},
-        {"+", Token(TokenType::OPERATOR, "+")},
-        {"-", Token(TokenType::OPERATOR, "-")},
-        {"*", Token(TokenType::OPERATOR, "*")},
-        {"/", Token(TokenType::OPERATOR, "/")},
+        {"goto", Token(TokenType::KEYWORD_GOTO, "goto")},
+        {"+", Token(TokenType::OPERATOR_ADD, "+")},
+        {"-", Token(TokenType::OPERATOR_SUB, "-")},
+        {"*", Token(TokenType::OPERATOR_MUL, "*")},
+        {"/", Token(TokenType::OPERATOR_DIV, "/")},
         {"(", Token(TokenType::PARENTHESIS, "(")},
         {")", Token(TokenType::PARENTHESIS, ")")}};
 

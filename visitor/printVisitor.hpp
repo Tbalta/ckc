@@ -9,34 +9,35 @@ namespace visitor
         void visitNodeIf(Parser::NodeIf &node) override
         {
             std::cout << "if ";
-            node.condition.accept(*this);
+            node.condition->accept(*this);
             std::cout << " then ";
-            node.thenStatement.accept(*this);
+            node.thenStatement->accept(*this);
             if (node.elseStatement)
             {
                 std::cout << " else ";
-                node.elseStatement.value().accept(*this);
+                node.elseStatement.value()->accept(*this);
             }
             std::cout << " fi";
         }
         void visitNodeGoto(Parser::NodeGoto &node) override
         {
-            std::cout << "goto ";
-            node.label.accept(*this);
+            std::cout << "goto " << node.label;
         }
         void visitBinOperator(Parser::NodeBinOperator &node) override
         {
-            node.left.accept(*this);
-            std::cout << " " << node.token.value << " ";
-            node.right.accept(*this);
+            std::cout << "(";
+            node.left->accept(*this);
+            std::cout << " " << node.op << " ";
+            node.right->accept(*this);
+            std::cout << ")";
         }
         void visitNode(Parser::Node &node) override
         {
             std::cout << node.value;
         }
-        void visit(Parser::Node &node)
+        void visitNodeNumber(Parser::NodeNumber &node) override
         {
-            node.accept(*this);
+            std::cout << node.value;
         }
     };
 }

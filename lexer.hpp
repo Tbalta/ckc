@@ -9,9 +9,15 @@ namespace Lexer
     {
         KEYWORD,
         OPERATOR,
+        OPERATOR_MUL,
+        OPERATOR_DIV,
+        OPERATOR_ADD,
+        OPERATOR_SUB,
         PARENTHESIS,
         NUMBER,
         IDENTIFIER,
+        KEYWORD_IF,
+        KEYWORD_GOTO,
     };
 
     class Token
