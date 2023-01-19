@@ -8,6 +8,8 @@ namespace visitor
     public:
         void visitNodeIf(Parser::NodeIf &node) override
         {
+            if (node.modifier.has_value())
+                node.modifier.value()->accept(*this);
             std::cout << "if ";
             node.condition->accept(*this);
             std::cout << " then ";
@@ -38,6 +40,33 @@ namespace visitor
         void visitNodeNumber(Parser::NodeNumber &node) override
         {
             std::cout << node.value;
+        }
+        virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
+        {
+            if (node.modifier.has_value())
+                node.modifier.value()->accept(*this);
+            std::cout << node.type << " " << node.name;
+            if (node.value)
+            {
+                std::cout << " = ";
+                node.value.value()->accept(*this);
+            }
+        }
+
+        virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node)
+        {
+            if (node.modifier.has_value())
+                node.modifier.value()->accept(*this);
+            std::cout << node.name << " = ";
+            node.value->accept(*this);
+        }
+        virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node)
+        {
+            std::cout << node.modifier_name << " " << node.modifier_value << " ";
+        }
+        virtual void visitNodeIdentifier(Parser::NodeIdentifier &node)
+        {
+            std::cout << node.name;
         }
     };
 }

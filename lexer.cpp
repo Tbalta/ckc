@@ -2,7 +2,7 @@
 #include <map>
 #include "lexer.hpp"
 #include <algorithm>
-
+#include <unordered_set>
 namespace Lexer
 {
     static std::string tokenTypeToString(TokenType type)
@@ -27,25 +27,30 @@ namespace Lexer
     const static std::map<std::string, Token> builtinToken{
         {"if", Token(TokenType::KEYWORD_IF, "if")},
         {"then", Token(TokenType::KEYWORD, "then")},
-        {"else", Token(TokenType::KEYWORD, "else")},
-        {"fi", Token(TokenType::KEYWORD, "fi")},
+        {"else", Token(TokenType::KEYWORD_ELSE, "else")},
+        {"fi", Token(TokenType::KEYWORD_FI, "fi")},
         {"goto", Token(TokenType::KEYWORD_GOTO, "goto")},
         {"+", Token(TokenType::OPERATOR_ADD, "+")},
         {"-", Token(TokenType::OPERATOR_SUB, "-")},
         {"*", Token(TokenType::OPERATOR_MUL, "*")},
         {"/", Token(TokenType::OPERATOR_DIV, "/")},
+        {"<", Token(TokenType::OPERATOR_LT, "<")},
+        {"<=", Token(TokenType::OPERATOR_LE, "<=")},
+        {">", Token(TokenType::OPERATOR_GT, ">")},
+        {">=", Token(TokenType::OPERATOR_GE, ">=")},
         {"(", Token(TokenType::PARENTHESIS, "(")},
+        {"#", Token(TokenType::KEYWORD_HASHTAG, "#")},
         {")", Token(TokenType::PARENTHESIS, ")")}};
 
     static std::map<std::string, Token> typeToken{
-        {"uint8", Token(TokenType::KEYWORD, "uint8")},
-        {"uint16", Token(TokenType::KEYWORD, "uint16")},
-        {"uint32", Token(TokenType::KEYWORD, "uint32")},
-        {"uint64", Token(TokenType::KEYWORD, "uint64")},
-        {"int8", Token(TokenType::KEYWORD, "int8")},
-        {"int16", Token(TokenType::KEYWORD, "int16")},
-        {"int32", Token(TokenType::KEYWORD, "int32")},
-        {"int64", Token(TokenType::KEYWORD, "int64")},
+        {"uint8", Token(TokenType::TYPE, "uint8")},
+        {"uint16", Token(TokenType::TYPE, "uint16")},
+        {"uint32", Token(TokenType::TYPE, "uint32")},
+        {"uint64", Token(TokenType::TYPE, "uint64")},
+        {"int8", Token(TokenType::TYPE, "int8")},
+        {"int16", Token(TokenType::TYPE, "int16")},
+        {"int32", Token(TokenType::TYPE, "int32")},
+        {"int64", Token(TokenType::TYPE, "int64")},
     };
 
     bool isNumber(const std::string &str)
@@ -54,6 +59,15 @@ namespace Lexer
         if (*start == '-')
             start++;
         return std::all_of(start, str.end(), ::isdigit);
+    }
+
+    int Token::getPrecedence()
+    {
+        if (tokenPrecedence.find(type) != tokenPrecedence.end())
+        {
+            return tokenPrecedence.at(type);
+        }
+        return -1;
     }
 
     std::string getNextToken(std::istream &input)
@@ -107,6 +121,20 @@ namespace Lexer
         }
         buffer = get();
         return buffer.value();
+    }
+
+    bool TokenStream::isEmpty()
+    {
+        this->peek();
+        return input.eof();
+    }
+
+    bool Token::isEndMultiBlock()
+    {
+        std::unordered_set<TokenType> endMultiBlock{
+            TokenType::KEYWORD_ELSE,
+            TokenType::KEYWORD_FI};
+        return endMultiBlock.find(type) != endMultiBlock.end();
     }
 
 }

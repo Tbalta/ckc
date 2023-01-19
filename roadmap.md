@@ -12,10 +12,10 @@ Variable declaration should be supported.
 ## Glossary
 expression: a line that has a value.
 statement: a line that doesn't have a value.
-
+block: a set of statement.
 ### BNF
 ```bnf
-<entry> ::= <statement>*
+<entry> ::= <block>*
 
 <number> ::= [-][0-9][0-9_]*
 <identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
@@ -24,9 +24,13 @@ statement: a line that doesn't have a value.
 <operation> ::= ( <unary_operator> <expression> ) | ( <expression> <binary_operator> <expression> )
 <unary_operator> ::= "!" | "-"
 <binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "<<" | ">>"
-<statement> ::= (<variable_declaration> | <assignment> | <goto>) ";" | <statement_if>
-<statement_if> ::= "if" <expression> "then" <statement> [ "else" <statement>] "fi"
-<variable_declaration> ::= <type> <identifier>
-<assigment> ::= <type> <identifier> "=" <expression>
+<statement> ::= (<variable_declaration> | <assignment> | <goto>) ";"
+<block> ::= <block_modifier> (<block_if> | <statement>)
+<block_if> ::= "if" <expression> "then" <block> [ "else" <block>] "fi"
+<multi_block> ::= <block>*
+<variable_declaration> ::= <type> <identifier> [ "=" <expression> ]
+<assigment> ::= <identifier> "=" <expression>
 <goto> ::= "goto" <identifier>
+<block_modifier> ::= <named_block>
+<named_block> ::= "#" <identifier>
 ```

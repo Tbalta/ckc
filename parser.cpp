@@ -6,17 +6,27 @@
 namespace Parser
 {
 
+    std::unique_ptr<NodeMultiBlock> parseMultiBlock(Lexer::TokenStream &ts)
+    {
+        std::vector<std::unique_ptr<NodeBlock>> blocks;
+        while (!ts.peek().isEndMultiBlock())
+        {
+            blocks.push_back(parseBlock(ts));
+        }
+        return std::make_unique<NodeMultiBlock>(std::move(blocks));
+    }
+
     std::unique_ptr<NodeIf> parseIf(const Lexer::Token &t, Lexer::TokenStream &ts)
     {
-        auto condition = parseExpression(ts);
+        auto condition = parsePrecedence(ts);
         std::string thenStr = ts.get().value;
         assert(thenStr == "then");
-        auto thenStatement = parseStatement(ts);
+        auto thenStatement = parseMultiBlock(ts);
         std::string fiStr = ts.get().value;
-        std::optional<std::unique_ptr<NodeStatement>> elseStatement = std::nullopt;
+        std::optional<std::unique_ptr<NodeMultiBlock>> elseStatement = std::nullopt;
         if (fiStr == "else")
         {
-            elseStatement = parseStatement(ts);
+            elseStatement = parseMultiBlock(ts);
             fiStr = ts.get().value;
         }
         assert(fiStr == "fi");
@@ -34,23 +44,59 @@ namespace Parser
         return std::make_unique<NodeNumber>(value);
     }
 
-    Node parseIdentifier(const Lexer::Token &t)
+    std::unique_ptr<NodeIdentifier> parseIdentifier(const Lexer::Token &t)
     {
-        Node node;
-        node.token = t;
-        return node;
+        return std::make_unique<NodeIdentifier>(t.value);
     }
 
     std::unique_ptr<NodeStatement> parseStatement(Lexer::TokenStream &ts)
     {
-        const Lexer::Token t = ts.get();
+        const Lexer::Token t = ts.peek();
+        std::unique_ptr<NodeStatement> statement;
+        switch (t.type)
+        {
+        case Lexer::TokenType::KEYWORD_GOTO:
+            statement = parseGoto(ts.get(), ts);
+            break;
+        case Lexer::TokenType::IDENTIFIER:
+            statement = parseVariableAssignment(ts);
+            break;
+        case Lexer::TokenType::TYPE:
+            statement = parseVariableDeclaration(ts);
+            break;
+        }
+        const std::string semicolon = ts.get().value;
+        assert(semicolon == ";");
+        return statement;
+    }
+
+    std::unique_ptr<NodeBlockModifier> parseBlockModifier(Lexer::TokenStream &ts)
+    {
+        return std::make_unique<NodeBlockModifier>("named_block", ts.get().value);
+    }
+
+    std::unique_ptr<NodeBlock> parseBlock(Lexer::TokenStream &ts)
+    {
+        Lexer::Token t = ts.peek();
+        std::optional<std::unique_ptr<NodeBlockModifier>> modifier = std::nullopt;
+        if (t.type == Lexer::TokenType::KEYWORD_HASHTAG)
+        {
+            ts.get();
+            modifier = parseBlockModifier(ts);
+        }
+        t = ts.peek();
+        std::unique_ptr<NodeBlock> block;
         switch (t.type)
         {
         case Lexer::TokenType::KEYWORD_IF:
-            return parseIf(t, ts);
-        case Lexer::TokenType::KEYWORD_GOTO:
-            return parseGoto(t, ts);
+            block = parseIf(ts.get(), ts);
+            break;
+        default:
+            block = parseStatement(ts);
+            break;
         }
+        block->modifier = std::move(modifier);
+        return block;
     }
 
     std::unique_ptr<NodeExpression> parseMul(Lexer::TokenStream &ts)
@@ -61,6 +107,10 @@ namespace Parser
         if (t.type == Lexer::TokenType::NUMBER)
         {
             term = parseNumber(ts.get());
+        }
+        if (t.type == Lexer::TokenType::IDENTIFIER)
+        {
+            term = parseIdentifier(ts.get());
         }
         // while t is a * or / parseMul
         t = ts.peek();
@@ -74,15 +124,56 @@ namespace Parser
         return term;
     }
 
+    std::unique_ptr<NodeExpression> parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
+    {
+        assert(precedenceIndex >= 0);
+        if (precedenceIndex == 0)
+            return parseMul(ts);
+
+        const int precedence = Lexer::precedenceList[precedenceIndex];
+        std::unique_ptr<NodeExpression> left = parsePrecedence(ts, precedenceIndex - 1);
+        Lexer::Token t = ts.peek();
+        while (t.getPrecedence() == precedence)
+        {
+            std::string op = ts.get().value;
+            std::unique_ptr<NodeExpression> right = parsePrecedence(ts, precedence - 1);
+            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), std::move(op));
+            t = ts.peek();
+        }
+        return left;
+    }
+
     std::unique_ptr<NodeExpression> parseExpression(Lexer::TokenStream &ts)
     {
         std::unique_ptr<NodeExpression> left = parseMul(ts);
-        while (ts.peek().type == Lexer::TokenType::OPERATOR_ADD || ts.peek().type == Lexer::TokenType::OPERATOR_SUB)
+        while (ts.peek().getPrecedence() == 20)
         {
             std::string op = ts.get().value;
             std::unique_ptr<NodeExpression> right = parseMul(ts);
             left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), std::move(op));
         }
         return left;
+    }
+
+    std::unique_ptr<NodeVariableDeclaration> parseVariableDeclaration(Lexer::TokenStream &ts)
+    {
+        const std::string type = ts.get().value;
+        const std::string identifier = ts.get().value;
+        const std::string equal = ts.get().value;
+        std::optional<std::unique_ptr<NodeExpression>> expression = std::nullopt;
+        if (equal == "=")
+        {
+            expression = parseExpression(ts);
+        }
+        return std::make_unique<NodeVariableDeclaration>(type, identifier, std::move(expression));
+    }
+
+    std::unique_ptr<NodeVariableAssignment> parseVariableAssignment(Lexer::TokenStream &ts)
+    {
+        const std::string identifier = ts.get().value;
+        const std::string equal = ts.get().value;
+        assert(equal == "=");
+        std::unique_ptr<NodeExpression> expression = parseExpression(ts);
+        return std::make_unique<NodeVariableAssignment>(identifier, std::move(expression));
     }
 }

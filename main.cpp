@@ -7,8 +7,12 @@ int main(void)
 {
     auto file = std::ifstream("test.kc");
     Lexer::TokenStream ts(file);
-    std::unique_ptr<Parser::NodeStatement> nodeMain = Parser::parseStatement(ts);
-    visitor::PrintVisitor pv;
-    nodeMain->accept(pv);
+    while (!ts.isEmpty())
+    {
+        std::unique_ptr<Parser::NodeBlock> nodeMain = Parser::parseBlock(ts);
+        visitor::PrintVisitor pv;
+        nodeMain->accept(pv);
+        std::cout << std::endl;
+    }
     return 0;
 }
