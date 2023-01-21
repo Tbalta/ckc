@@ -38,6 +38,11 @@ namespace Parser
         return std::make_unique<NodeGoto>(ts.get().value);
     }
 
+    std::unique_ptr<NodeReturn> parseReturn(const Lexer::Token &t, Lexer::TokenStream &ts)
+    {
+        return std::make_unique<NodeReturn>(parsePrecedence(ts));
+    }
+
     std::unique_ptr<NodeNumber> parseNumber(const Lexer::Token &t)
     {
         int value = std::stoi(t.value);
@@ -58,11 +63,17 @@ namespace Parser
         case Lexer::TokenType::KEYWORD_GOTO:
             statement = parseGoto(ts.get(), ts);
             break;
+        case Lexer::TokenType::KEYWORD_RETURN:
+            statement = parseReturn(ts.get(), ts);
+            break;
         case Lexer::TokenType::IDENTIFIER:
             statement = parseVariableAssignment(ts);
             break;
         case Lexer::TokenType::TYPE:
             statement = parseVariableDeclaration(ts);
+            break;
+        default:
+            throw std::runtime_error("Unexpected token: " + t.value);
             break;
         }
         const std::string semicolon = ts.get().value;
@@ -72,7 +83,7 @@ namespace Parser
 
     std::unique_ptr<NodeBlockModifier> parseBlockModifier(Lexer::TokenStream &ts)
     {
-        return std::make_unique<NodeBlockModifier>("named_block", ts.get().value);
+        return std::make_unique<NodeBlockModifier>(Lexer::ModifierType::Named, ts.get().value);
     }
 
     std::unique_ptr<NodeBlock> parseBlock(Lexer::TokenStream &ts)
@@ -116,7 +127,7 @@ namespace Parser
         t = ts.peek();
         while (t.type == Lexer::TokenType::OPERATOR_MUL || t.type == Lexer::TokenType::OPERATOR_DIV)
         {
-            std::string op = ts.get().value;
+            auto op = ts.get().type;
             std::unique_ptr<NodeExpression> right = parseNumber(ts.get());
             term = std::make_unique<NodeBinOperator>(std::move(term), std::move(right), op);
             t = ts.peek();
@@ -135,9 +146,9 @@ namespace Parser
         Lexer::Token t = ts.peek();
         while (t.getPrecedence() == precedence)
         {
-            std::string op = ts.get().value;
+            auto op = ts.get().type;
             std::unique_ptr<NodeExpression> right = parsePrecedence(ts, precedence - 1);
-            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), std::move(op));
+            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), op);
             t = ts.peek();
         }
         return left;
@@ -148,9 +159,9 @@ namespace Parser
         std::unique_ptr<NodeExpression> left = parseMul(ts);
         while (ts.peek().getPrecedence() == 20)
         {
-            std::string op = ts.get().value;
+            auto op = ts.get().type;
             std::unique_ptr<NodeExpression> right = parseMul(ts);
-            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), std::move(op));
+            left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), op);
         }
         return left;
     }

@@ -14,6 +14,7 @@ namespace Parser
     class NodeBlockModifier;
     class NodeIdentifier;
     class NodeMultiBlock;
+    class NodeReturn;
 
     class Visitor
     {
@@ -27,6 +28,7 @@ namespace Parser
         virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node) = 0;
         virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node) = 0;
         virtual void visitNodeIdentifier(Parser::NodeIdentifier &node) = 0;
+        virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
     };
 
     class Node
@@ -52,9 +54,9 @@ namespace Parser
     class NodeBlockModifier : public Node
     {
     public:
-        std::string modifier_name;
+        Lexer::ModifierType modifier_type;
         std::string modifier_value;
-        NodeBlockModifier(std::string modifier_name, std::string modifier_value) : modifier_name(modifier_name), modifier_value(modifier_value){};
+        NodeBlockModifier(Lexer::ModifierType modifier_type, std::string modifier_value) : modifier_type(modifier_type), modifier_value(modifier_value){};
         virtual void accept(Visitor &v)
         {
             v.visitNodeBlockModifier(*this);
@@ -113,13 +115,24 @@ namespace Parser
         };
     };
 
+    class NodeReturn : public NodeStatement
+    {
+    public:
+        std::unique_ptr<NodeExpression> value;
+        NodeReturn(std::unique_ptr<NodeExpression> value) : value(std::move(value)){};
+        void accept(Visitor &v) override
+        {
+            v.visitNodeReturn(*this);
+        };
+    };
+
     class NodeBinOperator : public NodeExpression
     {
     public:
         std::unique_ptr<NodeExpression> left;
         std::unique_ptr<NodeExpression> right;
-        std::string op;
-        NodeBinOperator(std::unique_ptr<NodeExpression> left, std::unique_ptr<NodeExpression> right, std::string op) : left(std::move(left)), right(std::move(right)), op(op){};
+        Lexer::TokenType op;
+        NodeBinOperator(std::unique_ptr<NodeExpression> left, std::unique_ptr<NodeExpression> right, Lexer::TokenType op) : left(std::move(left)), right(std::move(right)), op(op){};
         virtual void accept(Visitor &v) override
         {
             v.visitBinOperator(*this);

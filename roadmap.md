@@ -9,6 +9,8 @@ Only integer should be supported.
 
 Variable declaration should be supported.
 
+the expression inside the return statetement should be the value returned by the function.
+
 ## Glossary
 expression: a line that has a value.
 statement: a line that doesn't have a value.
@@ -24,13 +26,14 @@ block: a set of statement.
 <operation> ::= ( <unary_operator> <expression> ) | ( <expression> <binary_operator> <expression> )
 <unary_operator> ::= "!" | "-"
 <binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "<<" | ">>"
-<statement> ::= (<variable_declaration> | <assignment> | <goto>) ";"
+<statement> ::= (<variable_declaration> | <assignment> | <goto> | <return>) ";"
 <block> ::= <block_modifier> (<block_if> | <statement>)
 <block_if> ::= "if" <expression> "then" <block> [ "else" <block>] "fi"
 <multi_block> ::= <block>*
 <variable_declaration> ::= <type> <identifier> [ "=" <expression> ]
 <assigment> ::= <identifier> "=" <expression>
 <goto> ::= "goto" <identifier>
+<return> ::= "return" <expression>
 <block_modifier> ::= <named_block>
 <named_block> ::= "#" <identifier>
 ```

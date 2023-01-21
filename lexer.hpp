@@ -4,6 +4,7 @@
 #include <optional>
 #include <map>
 #include <vector>
+#include <optional>
 namespace Lexer
 {
 
@@ -25,10 +26,22 @@ namespace Lexer
         IDENTIFIER,
         KEYWORD_IF,
         KEYWORD_GOTO,
+        KEYWORD_RETURN,
         KEYWORD_ELSE,
         KEYWORD_FI,
         TYPE
     };
+
+    enum class ModifierType
+    {
+        Named
+    };
+
+    const static std::map<std::string, ModifierType> modifierTypeMap{
+        {"named", ModifierType::Named},
+    };
+
+    std::string tokenTypeToString(TokenType type);
 
     static std::map<TokenType, int> tokenPrecedence{
         {TokenType::OPERATOR_MUL, 10},

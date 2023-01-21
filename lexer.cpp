@@ -5,7 +5,7 @@
 #include <unordered_set>
 namespace Lexer
 {
-    static std::string tokenTypeToString(TokenType type)
+    std::string tokenTypeToString(TokenType type)
     {
         switch (type)
         {
@@ -19,6 +19,38 @@ namespace Lexer
             return "NUMBER";
         case TokenType::IDENTIFIER:
             return "IDENTIFIER";
+        case TokenType::OPERATOR_ADD:
+            return "+";
+        case TokenType::OPERATOR_SUB:
+            return "-";
+        case TokenType::OPERATOR_MUL:
+            return "*";
+        case TokenType::OPERATOR_DIV:
+            return "/";
+        case TokenType::OPERATOR_LT:
+            return "<";
+        case TokenType::OPERATOR_LE:
+            return "<=";
+        case TokenType::OPERATOR_GT:
+            return ">";
+        case TokenType::OPERATOR_GE:
+            return ">=";
+        case TokenType::KEYWORD_HASHTAG:
+            return "#";
+        case TokenType::KEYWORD_IF:
+            return "if";
+        case TokenType::KEYWORD_GOTO:
+            return "goto";
+        case TokenType::KEYWORD_RETURN:
+            return "return";
+        case TokenType::KEYWORD_ELSE:
+            return "else";
+        case TokenType::KEYWORD_FI:
+            return "fi";
+        case TokenType::TYPE:
+            return "TYPE";
+        default:
+            return "UNKNOWN";
         }
         return "UNKNOWN";
     }
@@ -30,6 +62,7 @@ namespace Lexer
         {"else", Token(TokenType::KEYWORD_ELSE, "else")},
         {"fi", Token(TokenType::KEYWORD_FI, "fi")},
         {"goto", Token(TokenType::KEYWORD_GOTO, "goto")},
+        {"return", Token(TokenType::KEYWORD_RETURN, "return")},
         {"+", Token(TokenType::OPERATOR_ADD, "+")},
         {"-", Token(TokenType::OPERATOR_SUB, "-")},
         {"*", Token(TokenType::OPERATOR_MUL, "*")},
@@ -86,6 +119,7 @@ namespace Lexer
             }
             token += c;
         }
+        return token;
     }
 
     Token TokenStream::get()

@@ -29,7 +29,7 @@ namespace visitor
         {
             std::cout << "(";
             node.left->accept(*this);
-            std::cout << " " << node.op << " ";
+            std::cout << " " << Lexer::tokenTypeToString(node.op) << " ";
             node.right->accept(*this);
             std::cout << ")";
         }
@@ -62,11 +62,17 @@ namespace visitor
         }
         virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node)
         {
-            std::cout << node.modifier_name << " " << node.modifier_value << " ";
+            std::cout << "named" << " " << node.modifier_value << " ";
         }
         virtual void visitNodeIdentifier(Parser::NodeIdentifier &node)
         {
             std::cout << node.name;
+        }
+        
+        virtual void visitNodeReturn(Parser::NodeReturn &node)
+        {
+            std::cout << "return ";
+            node.value->accept(*this);
         }
     };
 }

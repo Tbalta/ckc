@@ -6,3 +6,4 @@ main
 *.txt
 toy*
 *.kc
+llvm-project
