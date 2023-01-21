@@ -134,9 +134,8 @@ namespace visitor
                 {"int32", Type::getInt32Ty(*context)},
                 {"int64", Type::getInt64Ty(*context)}};
             //
-            auto *block = Builder->GetInsertBlock();
-            IRBuilder<> Tmp(block, block->begin());
-            auto *alloca = Tmp.CreateAlloca(typeMap[node.type], 0, node.name);
+            // auto *block = Builder->GetInsertBlock();
+            auto *alloca = Builder->CreateAlloca(typeMap[node.type], 0, node.name);
             contextProvider.addVariable(node.name, alloca, node.type);
             if (!node.value.has_value())
                 return;
