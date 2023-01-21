@@ -53,7 +53,13 @@ namespace visitor
             Builder->SetInsertPoint(mergeBB);
         }
         virtual void visitNodeGoto(Parser::NodeGoto &node) {
-            Builder->CreateBr(contextProvider.getBasicBlock(node.label));
+            auto block = contextProvider.getBasicBlock(node.label);
+            if (block == nullptr)
+            {
+                block = BasicBlock::Create(*context, node.label);
+                contextProvider.addBasicBlock(node.label, block);
+            }
+            Builder->CreateBr(block);
         }
         virtual void visitBinOperator(Parser::NodeBinOperator &node)
         {
@@ -155,8 +161,12 @@ namespace visitor
             {
             case Lexer::ModifierType::Named:
             {
-                BasicBlock *block = BasicBlock::Create(*context, node.modifier_value);
-                contextProvider.addBasicBlock(node.modifier_value, block);
+                BasicBlock *block = contextProvider.getBasicBlock(node.modifier_value);
+                if (block == nullptr)
+                {
+                    block = BasicBlock::Create(*context, node.modifier_value);
+                    contextProvider.addBasicBlock(node.modifier_value, block);
+                }
                 Builder->CreateBr(block);
                 Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(block);
                 Builder->SetInsertPoint(block);
