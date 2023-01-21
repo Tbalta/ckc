@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <optional>
+#include <fstream>
+
 namespace Lexer
 {
 
@@ -20,6 +22,8 @@ namespace Lexer
         OPERATOR_LE,
         OPERATOR_GT,
         OPERATOR_GE,
+        OPERATOR_EQ,
+        OPERATOR_ASSIGN,
         PARENTHESIS,
         KEYWORD_HASHTAG,
         NUMBER,
@@ -27,9 +31,12 @@ namespace Lexer
         KEYWORD_IF,
         KEYWORD_GOTO,
         KEYWORD_RETURN,
-        KEYWORD_ELSE,
         KEYWORD_FI,
-        TYPE
+        KEYWORD_ELSE,
+        KEYWORD_THEN,
+        TYPE,
+        SEMICOLON,
+        TOKEN_EOF
     };
 
     enum class ModifierType
@@ -64,8 +71,10 @@ namespace Lexer
     public:
         TokenType type;
         std::string value;
+        int line;
+        int column;
 
-        Token(TokenType type, std::string value) : type(type), value(value){};
+        Token(TokenType type, std::string value, int line, int column) : type(type), value(value), line(line), column(column){};
         Token(){};
         int getPrecedence();
         bool isEndMultiBlock();
@@ -76,11 +85,23 @@ namespace Lexer
     private:
         std::istream &input;
         std::optional<Token> buffer = std::nullopt;
+        std::vector<std::string> lines;
+        std::string getNextToken();
+        std::string filename;
 
     public:
-        TokenStream(std::istream &input) : input(input){};
+        int line = 1;
+        int column = 1;
+        void moveHead();
+        TokenStream(std::istream &input, std::string filename) : input(input), filename(filename)
+        {
+            lines.push_back("");
+            moveHead();
+        };
         Token get();
         Token peek();
         bool isEmpty();
+        std::string getLine(int line);
+        void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
     };
 }

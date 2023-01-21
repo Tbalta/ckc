@@ -3,6 +3,9 @@
 #include "lexer.hpp"
 #include <algorithm>
 #include <unordered_set>
+#include <iostream>
+#include <iomanip>
+#include <llvm/Support/raw_ostream.h>
 namespace Lexer
 {
     std::string tokenTypeToString(TokenType type)
@@ -45,10 +48,14 @@ namespace Lexer
             return "return";
         case TokenType::KEYWORD_ELSE:
             return "else";
+        case TokenType::KEYWORD_THEN:
+            return "then";
         case TokenType::KEYWORD_FI:
             return "fi";
         case TokenType::TYPE:
             return "TYPE";
+        case TokenType::SEMICOLON:
+            return ";";
         default:
             return "UNKNOWN";
         }
@@ -56,34 +63,38 @@ namespace Lexer
     }
 
     // List of tokens should not be modified after initialization
-    const static std::map<std::string, Token> builtinToken{
-        {"if", Token(TokenType::KEYWORD_IF, "if")},
-        {"then", Token(TokenType::KEYWORD, "then")},
-        {"else", Token(TokenType::KEYWORD_ELSE, "else")},
-        {"fi", Token(TokenType::KEYWORD_FI, "fi")},
-        {"goto", Token(TokenType::KEYWORD_GOTO, "goto")},
-        {"return", Token(TokenType::KEYWORD_RETURN, "return")},
-        {"+", Token(TokenType::OPERATOR_ADD, "+")},
-        {"-", Token(TokenType::OPERATOR_SUB, "-")},
-        {"*", Token(TokenType::OPERATOR_MUL, "*")},
-        {"/", Token(TokenType::OPERATOR_DIV, "/")},
-        {"<", Token(TokenType::OPERATOR_LT, "<")},
-        {"<=", Token(TokenType::OPERATOR_LE, "<=")},
-        {">", Token(TokenType::OPERATOR_GT, ">")},
-        {">=", Token(TokenType::OPERATOR_GE, ">=")},
-        {"(", Token(TokenType::PARENTHESIS, "(")},
-        {"#", Token(TokenType::KEYWORD_HASHTAG, "#")},
-        {")", Token(TokenType::PARENTHESIS, ")")}};
+    const static std::map<std::string, TokenType> builtinToken{
+        {"if", TokenType::KEYWORD_IF},
+        {"then", TokenType::KEYWORD_THEN},
+        {"else", TokenType::KEYWORD_ELSE},
+        {"fi", TokenType::KEYWORD_FI},
+        {"goto", TokenType::KEYWORD_GOTO},
+        {"return", TokenType::KEYWORD_RETURN},
+        {";", TokenType::SEMICOLON},
+        {"+", TokenType::OPERATOR_ADD},
+        {"-", TokenType::OPERATOR_SUB},
+        {"*", TokenType::OPERATOR_MUL},
+        {"/", TokenType::OPERATOR_DIV},
+        {"<", TokenType::OPERATOR_LT},
+        {"<=", TokenType::OPERATOR_LE},
+        {">", TokenType::OPERATOR_GT},
+        {">=", TokenType::OPERATOR_GE},
+        {"==", TokenType::OPERATOR_EQ},
+        {"=", TokenType::OPERATOR_ASSIGN},
+        {"(", TokenType::PARENTHESIS},
+        {"#", TokenType::KEYWORD_HASHTAG},
+        {")", TokenType::PARENTHESIS},
+        {"", TokenType::TOKEN_EOF}};
 
-    static std::map<std::string, Token> typeToken{
-        {"uint8", Token(TokenType::TYPE, "uint8")},
-        {"uint16", Token(TokenType::TYPE, "uint16")},
-        {"uint32", Token(TokenType::TYPE, "uint32")},
-        {"uint64", Token(TokenType::TYPE, "uint64")},
-        {"int8", Token(TokenType::TYPE, "int8")},
-        {"int16", Token(TokenType::TYPE, "int16")},
-        {"int32", Token(TokenType::TYPE, "int32")},
-        {"int64", Token(TokenType::TYPE, "int64")},
+    static std::map<std::string, TokenType> typeToken{
+        {"uint8", TokenType::TYPE},
+        {"uint16", TokenType::TYPE},
+        {"uint32", TokenType::TYPE},
+        {"uint64", TokenType::TYPE},
+        {"int8", TokenType::TYPE},
+        {"int16", TokenType::TYPE},
+        {"int32", TokenType::TYPE},
+        {"int64", TokenType::TYPE},
     };
 
     bool isNumber(const std::string &str)
@@ -102,23 +113,55 @@ namespace Lexer
         }
         return -1;
     }
+    std::string getCurrentLine(std::istream &input)
+    {
+        int current = input.tellg();
+        std::string line;
+        std::getline(input, line);
+        input.seekg(current);
+        return line;
+    }
+    void TokenStream::moveHead()
+    {
+        int c = input.peek();
+        while (c != EOF && (c == ' ' || c == '\t' || c == '\n' || c == '\r'))
+        {
+            input.get();
+            if (c == '\n')
+            {
+                lines.push_back(getCurrentLine(input));
+                line++;
+                column = 0;
+            }
+            column++;
+            c = input.peek();
+        }
+    }
 
-    std::string getNextToken(std::istream &input)
+    // Get the next token and move the head at the beginning of the next token
+    std::string TokenStream::getNextToken()
     {
         std::string token;
         char c;
         while (input.get(c))
         {
-            if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+            column++;
+            if (c == '\n')
             {
-                if (token.size() > 0)
-                {
-                    return token;
-                }
-                continue;
+                line++;
+                column = 1;
+                lines.push_back(getCurrentLine(input));
             }
-            token += c;
+            if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
+                token += c;
+            else if (token.size() > 0)
+            {
+                // lines[lines.size() - 1] += c + token;
+                moveHead();
+                return token;
+            }
         }
+        moveHead();
         return token;
     }
 
@@ -130,21 +173,23 @@ namespace Lexer
             buffer.reset();
             return t;
         }
-        std::string token = getNextToken(input);
-
+        int currentLine = line;
+        int currentColumn = column;
+        std::string token = getNextToken();
+        Lexer::TokenType type = TokenType::IDENTIFIER;
         if (builtinToken.find(token) != builtinToken.end())
         {
-            return builtinToken.at(token);
+            type = builtinToken.at(token);
         }
-        if (typeToken.find(token) != typeToken.end())
+        else if (typeToken.find(token) != typeToken.end())
         {
-            return typeToken.at(token);
+            type = typeToken.at(token);
         }
-        if (isNumber(token))
+        else if (isNumber(token))
         {
-            return Token(TokenType::NUMBER, token);
+            type = TokenType::NUMBER;
         }
-        return Token(TokenType::IDENTIFIER, token);
+        return Token(type, token, currentLine, currentColumn);
     }
 
     Token TokenStream::peek()
@@ -169,6 +214,30 @@ namespace Lexer
             TokenType::KEYWORD_ELSE,
             TokenType::KEYWORD_FI};
         return endMultiBlock.find(type) != endMultiBlock.end();
+    }
+
+    std::string TokenStream::getLine(int line)
+    {
+        if (line - 1 < lines.size())
+        {
+            return lines[line - 1];
+        }
+        return "";
+    }
+#define RESET_COL "\033[0m"
+#define RED_COL "\033[31m"
+    void TokenStream::unexpectedToken(Token t, std::optional<TokenType> expected)
+    {
+        std::cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token type: " << t.value;
+        if (expected.has_value())
+        {
+            std::cerr << ", expected: " << Lexer::tokenTypeToString(expected.value());
+        }
+        std::cerr << std::endl;
+        std::cerr << filename << ":" << t.line << ":" << t.column << std::endl;
+        std::cerr << std::setfill(' ') << std::setw(4) << t.line << std::left << std::setw(5) << " |" << getLine(t.line) << std::endl;
+        std::cerr << std::setw(t.column - 1 + 9) << "" << RED_COL << std::setw(t.value.size()) << std::setfill('^') << "" << RESET_COL << std::setfill(' ') << std::endl;
+        std::cerr << std::setfill(' ') << std::right;
     }
 
 }

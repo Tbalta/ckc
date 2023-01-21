@@ -15,7 +15,7 @@ using namespace llvm;
 int main(void)
 {
     auto file = std::ifstream("test.kc");
-    Lexer::TokenStream ts(file);
+    Lexer::TokenStream ts(file, "test.kc");
     auto contextProvider = Context::ContextProvider();
 
     auto Context = std::make_shared<LLVMContext>();
@@ -31,11 +31,15 @@ int main(void)
     while (!ts.isEmpty())
     {
         std::unique_ptr<Parser::NodeBlock> nodeMain = Parser::parseBlock(ts);
+        if (nodeMain == nullptr)
+            break;
         visitor::PrintVisitor pv;
         nodeMain->accept(pv);
         nodeMain->accept(lv);
         std::cout << std::endl;
     }
-    Mod->print(llvm::errs(), nullptr);
+    Builder->CreateUnreachable();
+    if (!Parser::hasError())
+        Mod->print(llvm::errs(), nullptr);
     return 0;
 }

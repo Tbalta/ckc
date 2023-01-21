@@ -3,8 +3,25 @@
 #include <string>
 #include <cassert>
 #include <functional>
+#include <iostream>
+#include <iomanip>
+static bool parserError = false;
 namespace Parser
 {
+    bool hasError()
+    {
+        return parserError;
+    }
+
+    void checkToken(const Lexer::Token &t, Lexer::TokenType reference, Lexer::TokenStream &ts)
+    {
+        if (t.type == reference)
+            return;
+        parserError = true;
+        ts.unexpectedToken(t, reference);
+        while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
+            continue;
+    }
 
     std::unique_ptr<NodeMultiBlock> parseMultiBlock(Lexer::TokenStream &ts)
     {
@@ -19,17 +36,16 @@ namespace Parser
     std::unique_ptr<NodeIf> parseIf(const Lexer::Token &t, Lexer::TokenStream &ts)
     {
         auto condition = parsePrecedence(ts);
-        std::string thenStr = ts.get().value;
-        assert(thenStr == "then");
+        checkToken(ts.get(), Lexer::TokenType::KEYWORD_THEN, ts);
         auto thenStatement = parseMultiBlock(ts);
-        std::string fiStr = ts.get().value;
+        auto fiToken = ts.get();
         std::optional<std::unique_ptr<NodeMultiBlock>> elseStatement = std::nullopt;
-        if (fiStr == "else")
+        if (fiToken.value == "else")
         {
             elseStatement = parseMultiBlock(ts);
-            fiStr = ts.get().value;
+            fiToken = ts.get();
         }
-        assert(fiStr == "fi");
+        checkToken(fiToken, Lexer::TokenType::KEYWORD_FI, ts);
         return std::make_unique<NodeIf>(std::move(condition), std::move(thenStatement), std::move(elseStatement));
     }
 
@@ -72,12 +88,13 @@ namespace Parser
         case Lexer::TokenType::TYPE:
             statement = parseVariableDeclaration(ts);
             break;
+        case Lexer::TokenType::TOKEN_EOF:
+            return nullptr;
         default:
-            throw std::runtime_error("Unexpected token: " + t.value);
+            ts.unexpectedToken(t);
             break;
         }
-        const std::string semicolon = ts.get().value;
-        assert(semicolon == ";");
+        checkToken(ts.get(), Lexer::TokenType::SEMICOLON, ts);
         return statement;
     }
 
@@ -106,6 +123,8 @@ namespace Parser
             block = parseStatement(ts);
             break;
         }
+        if (block == nullptr)
+            return nullptr;
         block->modifier = std::move(modifier);
         return block;
     }
@@ -182,8 +201,7 @@ namespace Parser
     std::unique_ptr<NodeVariableAssignment> parseVariableAssignment(Lexer::TokenStream &ts)
     {
         const std::string identifier = ts.get().value;
-        const std::string equal = ts.get().value;
-        assert(equal == "=");
+        checkToken(ts.get(), Lexer::TokenType::OPERATOR_ASSIGN, ts);
         std::unique_ptr<NodeExpression> expression = parseExpression(ts);
         return std::make_unique<NodeVariableAssignment>(identifier, std::move(expression));
     }

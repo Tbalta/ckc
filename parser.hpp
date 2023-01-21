@@ -30,6 +30,7 @@ namespace Parser
         virtual void visitNodeIdentifier(Parser::NodeIdentifier &node) = 0;
         virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
     };
+    bool hasError();
 
     class Node
     {
