@@ -84,17 +84,22 @@ namespace Lexer
     class TokenStream
     {
     private:
-        std::istream &input;
+        const std::istream &input;
         std::optional<Token> buffer = std::nullopt;
         std::vector<std::string> lines;
         std::string getNextToken();
-        std::string filename;
+        std::string filename = "";
 
     public:
         int line = 1;
         int column = 1;
         void moveHead();
         TokenStream(std::istream &input, std::string filename) : input(input), filename(filename)
+        {
+            lines.push_back("");
+            moveHead();
+        };
+        TokenStream(const std::istream &input) : input(input)
         {
             lines.push_back("");
             moveHead();
