@@ -84,7 +84,7 @@ namespace Lexer
     class TokenStream
     {
     private:
-        const std::istream &input;
+        std::istream &input;
         std::optional<Token> buffer = std::nullopt;
         std::vector<std::string> lines;
         std::string getNextToken();
@@ -99,7 +99,7 @@ namespace Lexer
             lines.push_back("");
             moveHead();
         };
-        TokenStream(const std::istream &input) : input(input)
+        TokenStream(std::istream &input) : input(input)
         {
             lines.push_back("");
             moveHead();

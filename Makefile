@@ -37,9 +37,9 @@ clean:
 	$(RM) $(TARGET)
 	cd test && $(MAKE) clean
 
-compile: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET) test.ckc 2>&1 >/dev/null | llc -o $(BUILD_DIR)/test.S
-	gcc -o $(BUILD_DIR)/test $(BUILD_DIR)/test.S
+compile: $(TARGET)
+	./$(TARGET) test.ckc 2>&1 >/dev/null | llc -o test.S
+	gcc -o demo test.S
 
 test: 
 	cd test && $(MAKE)
