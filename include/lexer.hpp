@@ -23,6 +23,7 @@ namespace Lexer
         OPERATOR_GT,
         OPERATOR_GE,
         OPERATOR_EQ,
+        OPERATOR_NE,
         OPERATOR_ASSIGN,
         PARENTHESIS,
         KEYWORD_HASHTAG,
@@ -76,8 +77,8 @@ namespace Lexer
 
         Token(TokenType type, std::string value, int line, int column) : type(type), value(value), line(line), column(column){};
         Token(){};
-        int getPrecedence();
         bool isEndMultiBlock();
+        int getPrecedence();
     };
 
     class TokenStream

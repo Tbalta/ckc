@@ -1,25 +1,49 @@
 # c++ program to compile
 TARGET = main
-OBJ = main.o \
+BUILD_DIR = build
+SOURCE= \
+	main.o\
 	lexer.o\
 	parser.o\
-	contextProvider.o\
+	contextProvider.o 
+TEST_SOURCE = $(wildcard test/*.cpp)
+OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
+TEST_OBJ= $(addprefix $(BUILD_DIR)/, $(TEST_SOURCE:.cpp=.o)) $(filter-out $(BUILD_DIR)/main.o, $(OBJ))
 
+TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
 DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
 CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
 
-all: $(TARGET)
+.PHONY: directories clean compile test
+
+all: directories $(TARGET)
+directories:
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)/test
+
+
 $(TARGET): $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS)
 
-clean:
-	rm -f *.o *.d main
+$(BUILD_DIR)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-compile:
-	./$(TARGET) test.ckc 2>&1 >/dev/null | llc -o test.S
-	gcc -o test test.S
+clean:
+	rm -r $(BUILD_DIR)/test
+	rm -f $(BUILD_DIR)/*
+	$(RM) $(TARGET)
+	cd test && $(MAKE) clean
+
+compile: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET) test.ckc 2>&1 >/dev/null | llc -o $(BUILD_DIR)/test.S
+	gcc -o $(BUILD_DIR)/test $(BUILD_DIR)/test.S
+
+test: 
+	cd test && $(MAKE)
+	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS)
+	./unittest
 
 -include $(DEPS)

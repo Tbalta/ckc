@@ -80,6 +80,7 @@ namespace Lexer
         {">", TokenType::OPERATOR_GT},
         {">=", TokenType::OPERATOR_GE},
         {"==", TokenType::OPERATOR_EQ},
+        {"!=", TokenType::OPERATOR_NE},
         {"=", TokenType::OPERATOR_ASSIGN},
         {"(", TokenType::PARENTHESIS},
         {"#", TokenType::KEYWORD_HASHTAG},

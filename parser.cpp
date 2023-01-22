@@ -91,7 +91,7 @@ namespace Parser
         case Lexer::TokenType::TOKEN_EOF:
             return nullptr;
         default:
-            ts.unexpectedToken(t);
+            ts.unexpectedToken(ts.get());
             break;
         }
         checkToken(ts.get(), Lexer::TokenType::SEMICOLON, ts);
@@ -189,10 +189,11 @@ namespace Parser
     {
         const std::string type = ts.get().value;
         const std::string identifier = ts.get().value;
-        const std::string equal = ts.get().value;
+        const std::string equal = ts.peek().value;
         std::optional<std::unique_ptr<NodeExpression>> expression = std::nullopt;
         if (equal == "=")
         {
+            ts.get();
             expression = parseExpression(ts);
         }
         return std::make_unique<NodeVariableDeclaration>(type, identifier, std::move(expression));

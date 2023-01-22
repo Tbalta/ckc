@@ -37,3 +37,5 @@ block: a set of statement.
 <block_modifier> ::= <named_block>
 <named_block> ::= "#" <identifier>
 ```
+#### Note
+`<binary_operator>` is given for information purpose only. The parser will not use this grammar. 
