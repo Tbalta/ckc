@@ -37,7 +37,8 @@ namespace Lexer
         KEYWORD_THEN,
         TYPE,
         SEMICOLON,
-        TOKEN_EOF
+        TOKEN_EOF,
+        OPERATOR_PIPE
     };
 
     enum class ModifierType
