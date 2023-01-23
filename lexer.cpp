@@ -56,6 +56,8 @@ namespace Lexer
             return "TYPE";
         case TokenType::SEMICOLON:
             return ";";
+        case TokenType::OPERATOR_PIPE:
+            return "|";
         default:
             return "UNKNOWN";
         }
@@ -85,7 +87,9 @@ namespace Lexer
         {"(", TokenType::PARENTHESIS},
         {"#", TokenType::KEYWORD_HASHTAG},
         {")", TokenType::PARENTHESIS},
-        {"", TokenType::TOKEN_EOF}};
+        {"", TokenType::TOKEN_EOF},
+        {"|", TokenType::OPERATOR_PIPE}
+    };
 
     static std::map<std::string, TokenType> typeToken{
         {"uint8", TokenType::TYPE},
