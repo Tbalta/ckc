@@ -24,4 +24,4 @@ jobs:
     - name: make test
       run: make CI
     - name: Run Test
-      run: /home/runner/work/github_actions_gtest_example/github_actions_gtest_example/build/test/github_actions_gtest_example.test
+      run: /home/runner/work/ckc/ckc/unittest
