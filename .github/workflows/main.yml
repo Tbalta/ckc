@@ -24,4 +24,4 @@ jobs:
     - name: make test
       run: make CI
     - name: Run Test
-      run: /home/runner/work/ckc/ckc/unittest
+      run: /home/runner/work/ckc/ckc/unittest --color=always
