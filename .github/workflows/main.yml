@@ -19,7 +19,7 @@ jobs:
     - name: mkdir build
       run: mkdir build && mkdir build/test
     - name: test
-      run: ls -l
+      run: ls -l; ls -l build; llvm-config --cxxflags --ldflags --system-libs --libs core
     - uses: actions/checkout@v1
     - name: make test
       run: make test
