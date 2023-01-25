@@ -64,6 +64,11 @@ namespace Lexer
         return "UNKNOWN";
     }
 
+    std::ostream &operator<<(std::ostream &os, TokenType const &tok)
+    {
+        return os << tokenTypeToString(tok);
+    }
+
     // List of tokens should not be modified after initialization
     const static std::map<std::string, TokenType> builtinToken{
         {"if", TokenType::KEYWORD_IF},
@@ -209,7 +214,6 @@ namespace Lexer
 
     bool TokenStream::isEmpty()
     {
-        this->peek();
         return input.eof();
     }
 
@@ -243,6 +247,15 @@ namespace Lexer
         std::cerr << std::setfill(' ') << std::setw(4) << t.line << std::left << std::setw(5) << " |" << getLine(t.line) << std::endl;
         std::cerr << std::setw(t.column - 1 + 9) << "" << RED_COL << std::setw(t.value.size()) << std::setfill('^') << "" << RESET_COL << std::setfill(' ') << std::endl;
         std::cerr << std::setfill(' ') << std::right;
+    }
+    std::vector<Token> TokenStream::toList()
+    {
+        std::vector<Token> tokens;
+        while (!isEmpty())
+        {
+            tokens.push_back(get());
+        }
+        return tokens;
     }
 
 }

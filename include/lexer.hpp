@@ -51,6 +51,7 @@ namespace Lexer
     };
 
     std::string tokenTypeToString(TokenType type);
+    std::ostream &operator<<(std::ostream &os, TokenType const &tok);
 
     static std::map<TokenType, int> tokenPrecedence{
         {TokenType::OPERATOR_MUL, 10},
@@ -105,10 +106,12 @@ namespace Lexer
             lines.push_back("");
             moveHead();
         };
+
         Token get();
         Token peek();
         bool isEmpty();
         std::string getLine(int line);
         void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
+        std::vector<Token> toList();
     };
 }

@@ -41,7 +41,7 @@ compile: $(TARGET)
 	./$(TARGET) test.ckc 2>&1 >/dev/null | llc -o test.S
 	gcc -o demo test.S
 
-test: 
+test: $(OBJ)
 	cd test && $(MAKE)
 	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS)
 	./unittest
