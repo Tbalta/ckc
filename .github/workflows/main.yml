@@ -18,6 +18,8 @@ jobs:
       run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
     - name: mkdir build
       run: mkdir build && mkdir build/test
+    - name: test
+      run: ls -l
     - uses: actions/checkout@v1
     - name: make test
       run: make test
