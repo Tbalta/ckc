@@ -19,9 +19,9 @@ jobs:
     - name: mkdir build
       run: mkdir build && mkdir build/test
     - name: test
-      run: ls -l; ls -l build; llvm-config-10 --cxxflags --ldflags --system-libs --libs core
+      run: ls -l; ls -l build; llvm-config --cxxflags --ldflags --system-libs --libs core
     - uses: actions/checkout@v1
     - name: make test
-      run: make test
+      run: make CI
     - name: Run Test
       run: /home/runner/work/github_actions_gtest_example/github_actions_gtest_example/build/test/github_actions_gtest_example.test
