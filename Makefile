@@ -12,8 +12,8 @@ DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
-CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config-10 --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
-CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config-10 --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
+CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
+CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
 .PHONY: directories clean compile test
 
 all: directories $(TARGET)
