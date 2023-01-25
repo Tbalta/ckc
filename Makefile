@@ -9,6 +9,7 @@ SOURCE= \
 TEST_SOURCE = $(wildcard test/*.cpp)
 OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
 TEST_OBJ= $(addprefix $(BUILD_DIR)/, $(TEST_SOURCE:.cpp=.o)) $(filter-out $(BUILD_DIR)/main.o, $(OBJ))
+TEST_OBJ2= $(filter-out $(BUILD_DIR)/main.o, $(OBJ))
 
 TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
 DEPS = $(OBJ:.o=.d)
@@ -41,7 +42,7 @@ compile: $(TARGET)
 	./$(TARGET) test.ckc 2>&1 >/dev/null | llc -o test.S
 	gcc -o demo test.S
 
-test: $(OBJ)
+test: $(TEST_OBJ2)
 	cd test && $(MAKE)
 	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS)
 	./unittest
