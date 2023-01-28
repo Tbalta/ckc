@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <llvm/Support/raw_ostream.h>
+#include <cctype>
 namespace Lexer
 {
     std::string tokenTypeToString(TokenType type)
@@ -152,24 +153,23 @@ namespace Lexer
     std::string TokenStream::getNextToken()
     {
         std::string token;
-        char c;
-        while (input.get(c))
+        char c = input.peek();
+        if(std::isalnum(c) || c == '_')
         {
+            while ((std::isalnum(c) || c == '_') && c != EOF)
+            {
+                token += input.get();
+                column++;
+                c = input.peek();
+            }
+            moveHead();
+            return token;
+        }
+        while (!std::isalnum(c) && c != ' ' && c != '\n' && c != EOF)
+        {
+            token += input.get();
             column++;
-            if (c == '\n')
-            {
-                line++;
-                column = 1;
-                lines.push_back(getCurrentLine(input));
-            }
-            if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
-                token += c;
-            else if (token.size() > 0)
-            {
-                // lines[lines.size() - 1] += c + token;
-                moveHead();
-                return token;
-            }
+            c = input.peek();
         }
         moveHead();
         return token;
