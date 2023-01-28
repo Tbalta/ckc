@@ -3,10 +3,12 @@ name: my-workflow-name
 on:
   push:
     branches:
-      - all
-      - '*'
+    - all
+    - '*'
+    - 'feature/*'
   pull_request:
-    branches: [ all ]
+    branches:
+    - main
 
 jobs:
   build:
