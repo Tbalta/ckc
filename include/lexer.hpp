@@ -51,6 +51,7 @@ namespace Lexer
     };
 
     std::string tokenTypeToString(TokenType type);
+    std::string getCurrentLine(std::istream &input);
     std::ostream &operator<<(std::ostream &os, TokenType const &tok);
 
     static std::map<TokenType, int> tokenPrecedence{
@@ -98,12 +99,12 @@ namespace Lexer
         void moveHead();
         TokenStream(std::istream &input, std::string filename) : input(input), filename(filename)
         {
-            lines.push_back("");
+            lines.push_back(getCurrentLine(input));
             moveHead();
         };
         TokenStream(std::istream &input) : input(input)
         {
-            lines.push_back("");
+            lines.push_back(getCurrentLine(input));
             moveHead();
         };
 
