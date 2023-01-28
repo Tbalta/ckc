@@ -44,4 +44,3 @@ TEST(LexerTest, whileTest) {
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
 }
-
