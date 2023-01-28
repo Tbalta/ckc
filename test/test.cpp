@@ -38,3 +38,10 @@ TEST(LexerTest, variableAssignmentTest) {
   Lexer::TokenStream tsExpr(streamExpr);
   ASSERT_THAT(Map(tsExpr.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::OPERATOR_ADD, TokenType::NUMBER));
 }
+
+TEST(LexerTest, whileTest) {
+  auto stream = std::stringstream("int64 i = 0 ;");
+  Lexer::TokenStream ts(stream);
+  ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
+}
+
