@@ -35,8 +35,8 @@ clean:
 	cd test && $(MAKE) clean
 
 compile: $(TARGET)
-	./$(TARGET) test.ckc 2>&1 >/dev/null | llc -o test.S
-	gcc -o demo test.S
+	./$(TARGET) test.kc
+	gcc -o demo output.o
 
 test: $(TEST_OBJ2)
 	cd test && $(MAKE)
