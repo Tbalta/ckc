@@ -124,6 +124,12 @@ namespace Lexer
         }
         return -1;
     }
+
+    bool Token::operator==(const Token &other) const
+    {
+        return type == other.type && value == other.value && line == other.line && column == other.column;
+    }
+
     std::string getCurrentLine(std::istream &input)
     {
         int current = input.tellg();

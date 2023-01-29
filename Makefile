@@ -7,15 +7,15 @@ OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
 TEST_OBJ= $(addprefix $(BUILD_DIR)/, $(TEST_SOURCE:.cpp=.o))
 TEST_OBJ2= $(filter-out $(BUILD_DIR)/main.o, $(OBJ))
 
-TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
+TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -lgmock -lgmock_main
 DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
 CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
-CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main
+CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -DTEST
 .PHONY: directories clean compile test
-
+test: CXXFLAGS += -DTEST -L/usr/lib/x86_64-linux-gnu/
 all: directories $(TARGET)
 directories:
 	@mkdir -p $(BUILD_DIR)
@@ -40,7 +40,7 @@ compile: $(TARGET)
 
 test: $(TEST_OBJ2)
 	cd test && $(MAKE)
-	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS)
+	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS) -DTEST
 	./unittest
 
 .PHONY: CI

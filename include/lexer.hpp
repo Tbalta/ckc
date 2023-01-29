@@ -6,7 +6,7 @@
 #include <vector>
 #include <optional>
 #include <fstream>
-
+#include "util.hpp"
 namespace Lexer
 {
 
@@ -82,6 +82,7 @@ namespace Lexer
         Token(){};
         bool isEndMultiBlock();
         int getPrecedence();
+        bool operator==(const Token &other) const;
     };
 
     class TokenStream
@@ -112,7 +113,7 @@ namespace Lexer
         Token peek();
         bool isEmpty();
         std::string getLine(int line);
-        void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
+        VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
         std::vector<Token> toList();
     };
 }
