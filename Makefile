@@ -13,7 +13,7 @@ DEPS = $(OBJ:.o=.d)
 # compiler
 CXX = g++
 CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
-CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -DTEST
+CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -DTEST -Itest/include
 .PHONY: directories clean compile test
 test: CXXFLAGS += -DTEST -L/usr/lib/x86_64-linux-gnu/
 all: directories $(TARGET)
