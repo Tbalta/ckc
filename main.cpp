@@ -22,11 +22,11 @@
 using namespace llvm;
 int main(int argc, char **argv)
 {
-    int useStdin = 0;
+    int silent = 0;
     std::istream *input = nullptr;
     std::string inputFileName = "";
     static struct option long_options[] = {
-        {"stdin", no_argument, &useStdin, 1},
+        {"silent", no_argument, &silent, 's'},
         {0, 0, 0, 0}};
     int c;
     for (int i = 0; optind + i < argc; i += optind)
@@ -48,14 +48,18 @@ int main(int argc, char **argv)
             delete input;
             input = new std::ifstream(argv[optind + i]);
             inputFileName = argv[optind + i];
+            if (input->fail())
+            {
+                std::cout << "File not found: " << argv[optind + i] << std::endl;
+                return 1;
+            }
         }
     }
 
-    if (useStdin)
+    if (input == nullptr)
     {
-        delete input;
-        input = &std::cin;
-        inputFileName = "stdin";
+        errs() << "No input file";
+        return 1;
     }
     auto TargetTriple = sys::getDefaultTargetTriple();
 
@@ -79,7 +83,7 @@ int main(int argc, char **argv)
 
     TargetOptions opt;
     auto RM = Optional<llvm::Reloc::Model>();
-    auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+    auto TargetMachine = std::unique_ptr<llvm::TargetMachine>(Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM));
 
     // if (!file.is_open())
     // {
@@ -111,10 +115,14 @@ int main(int argc, char **argv)
         if (nodeMain == nullptr)
             break;
         visitor::PrintVisitor pv;
-        nodeMain->accept(pv);
+        if (!silent)
+        {
+            nodeMain->accept(pv);
+            std::cout << std::endl;
+        }
         nodeMain->accept(lv);
-        std::cout << std::endl;
     }
+    delete input;
     if (Parser::hasError())
     {
         return 1;
@@ -143,5 +151,6 @@ int main(int argc, char **argv)
 
     pass.run(*Mod);
     dest.flush();
+
     return 0;
 }

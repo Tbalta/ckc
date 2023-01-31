@@ -40,6 +40,7 @@ namespace Parser
         Node(){};
         Node(std::string value) : value(value){};
         virtual void accept(Visitor &v){};
+        virtual ~Node() = default;
     };
 
     class NodeExpression : public Node

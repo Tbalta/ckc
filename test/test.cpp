@@ -12,9 +12,6 @@ auto Map(const std::vector<T>& input_array, Func op)
     return result_array;
 }
 
-
-
-
 TEST(LexerTest, ifTest) {
   // Expect two strings not to be equal.
   auto stream = std::stringstream("if cond then fi");
