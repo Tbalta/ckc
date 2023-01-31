@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         {"stdin", no_argument, &useStdin, 1},
         {0, 0, 0, 0}};
     int c;
-    for (int i = 0; optind + i < argc; i++)
+    for (int i = 0; optind + i < argc; i += optind)
     {
         while ((c = getopt_long(argc - i, argv + i, "s", long_options, nullptr)) != -1)
         {
