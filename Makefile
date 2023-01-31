@@ -45,8 +45,9 @@ test: $(TEST_OBJ2) $(TARGET)
 	./test/functional/step1.sh ./$(TARGET)
 
 .PHONY: CI
-CI: $(TARGET)
+CI:
 	$(CXX) -o unittest $(TEST_SOURCE) $(CXXFLAGS_CI) $(TEST_LIBS)
+	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS_CI)
 	./unittest
 	./test/functional/step1.sh ./$(TARGET)
 
