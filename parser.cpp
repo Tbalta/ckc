@@ -156,7 +156,7 @@ namespace Parser
 
     std::unique_ptr<NodeExpression> parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
     {
-        assert(precedenceIndex >= 0);
+        assert(precedenceIndex >= 0 && precedenceIndex < Lexer::precedenceList.size());
         if (precedenceIndex == 0)
             return parseMul(ts);
 
@@ -166,7 +166,7 @@ namespace Parser
         while (t.getPrecedence() == precedence)
         {
             auto op = ts.get().type;
-            std::unique_ptr<NodeExpression> right = parsePrecedence(ts, precedence - 1);
+            std::unique_ptr<NodeExpression> right = parsePrecedence(ts, precedenceIndex - 1);
             left = std::make_unique<NodeBinOperator>(std::move(left), std::move(right), op);
             t = ts.peek();
         }

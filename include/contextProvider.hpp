@@ -23,5 +23,6 @@ namespace Context
         variable getVariable(std::string name);
         void addBasicBlock(std::string name, llvm::BasicBlock *block);
         llvm::BasicBlock *getBasicBlock(std::string name);
+        ~ContextProvider() = default;
     };
 }

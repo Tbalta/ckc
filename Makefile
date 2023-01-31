@@ -12,7 +12,7 @@ DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
-CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
+CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -fsanitize=address
 CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -DTEST -Itest/include
 .PHONY: directories clean compile test
 test: CXXFLAGS += -DTEST -L/usr/lib/x86_64-linux-gnu/
@@ -38,15 +38,17 @@ compile: $(TARGET)
 	./$(TARGET) test.kc
 	gcc -o demo output.o
 
-test: $(TEST_OBJ2)
+test: $(TEST_OBJ2) $(TARGET)
 	cd test && $(MAKE)
 	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS) -DTEST
 	./unittest
+	./test/functional/step1.sh ./$(TARGET)
 
 .PHONY: CI
-CI:
+CI: $(TARGET)
 	$(CXX) -o unittest $(TEST_SOURCE) $(CXXFLAGS_CI) $(TEST_LIBS)
 	./unittest
+	./test/functional/step1.sh ./$(TARGET)
 
 
 -include $(DEPS)

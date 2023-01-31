@@ -25,6 +25,7 @@ namespace visitor
         Context::ContextProvider &contextProvider;
 
     public:
+        ~llvmVisitor() = default;
         Value *lastValue;
         llvmVisitor(std::shared_ptr<LLVMContext> context, std::shared_ptr<IRBuilder<>> Builder, std::shared_ptr<Module> module, Context::ContextProvider &contextProvider) : context(context), Builder(Builder), TheModule(module), contextProvider(contextProvider){};
         virtual void visitNodeIf(Parser::NodeIf &node)
@@ -48,6 +49,7 @@ namespace visitor
             {
                 node.elseStatement.value()->accept(*this);
             }
+
             Builder->CreateBr(mergeBB);
             Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBB);
             Builder->SetInsertPoint(mergeBB);
@@ -118,7 +120,9 @@ namespace visitor
                 {"int32", [&]()
                  { return ConstantInt::get(*context, APInt(32, node.value, true)); }},
                 {"int64", [&]()
-                 { return ConstantInt::get(*context, APInt(64, node.value, true)); }}};
+                 { return ConstantInt::get(*context, APInt(64, node.value, true)); }},
+                {"", [&]()
+                { return ConstantInt::get(*context, APInt(32, node.value, false)); }}};
             lastValue = typeMap[currentType]();
         };
         virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
