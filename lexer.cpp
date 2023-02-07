@@ -31,6 +31,8 @@ namespace Lexer
             return "*";
         case TokenType::OPERATOR_DIV:
             return "/";
+        case TokenType::OPERATOR_MOD:
+            return "%";
         case TokenType::OPERATOR_LT:
             return "<";
         case TokenType::OPERATOR_LE:
@@ -83,18 +85,24 @@ namespace Lexer
         {"-", TokenType::OPERATOR_SUB},
         {"*", TokenType::OPERATOR_MUL},
         {"/", TokenType::OPERATOR_DIV},
-        {"<", TokenType::OPERATOR_LT},
-        {"<=", TokenType::OPERATOR_LE},
-        {">", TokenType::OPERATOR_GT},
-        {">=", TokenType::OPERATOR_GE},
+        {"%", TokenType::OPERATOR_MOD},
         {"==", TokenType::OPERATOR_EQ},
         {"!=", TokenType::OPERATOR_NE},
+        {"<", TokenType::OPERATOR_LT},
+        {">", TokenType::OPERATOR_GT},
+        {"<=", TokenType::OPERATOR_LE},
+        {">=", TokenType::OPERATOR_GE},
+        {"&&", TokenType::OPERATOR_AND},
+        {"||", TokenType::OPERATOR_OR},
+        {"<<", TokenType::OPERATOR_LSHIFT},
+        {">>", TokenType::OPERATOR_RSHIFT},
         {"=", TokenType::OPERATOR_ASSIGN},
         {"(", TokenType::PARENTHESIS},
         {"#", TokenType::KEYWORD_HASHTAG},
         {")", TokenType::PARENTHESIS},
         {"", TokenType::TOKEN_EOF},
         {"|", TokenType::OPERATOR_PIPE}
+
     };
 
     static std::map<std::string, TokenType> typeToken{

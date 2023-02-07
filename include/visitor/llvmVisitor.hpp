@@ -24,6 +24,7 @@ namespace visitor
         std::string currentType;
         Context::ContextProvider &contextProvider;
 
+
     public:
         ~llvmVisitor() = default;
         Value *lastValue;
@@ -84,6 +85,15 @@ namespace visitor
             case Lexer::TokenType::OPERATOR_DIV:
                 lastValue = Builder->CreateSDiv(left, right, "divtmp");
                 break;
+            case Lexer::TokenType::OPERATOR_MOD:
+                lastValue = Builder->CreateSRem(left, right, "modtmp");
+                break;
+            case Lexer::TokenType::OPERATOR_EQ:
+                lastValue = Builder->CreateICmpEQ(left, right, "eqtmp");
+                break;
+            case Lexer::TokenType::OPERATOR_NE:
+                lastValue = Builder->CreateICmpNE(left, right, "netmp");
+                break;
             case Lexer::TokenType::OPERATOR_LT:
                 lastValue = Builder->CreateICmpSLT(left, right, "lttmp");
                 break;
@@ -96,6 +106,25 @@ namespace visitor
             case Lexer::TokenType::OPERATOR_GE:
                 lastValue = Builder->CreateICmpSGE(left, right, "getmp");
                 break;
+            case Lexer::TokenType::OPERATOR_AND:
+            {
+                left = Builder->CreateICmpNE(left, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
+                right = Builder->CreateICmpNE(right, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+                lastValue = Builder->CreateAnd(left, right, "andtmp");
+            }
+                break;
+            case Lexer::TokenType::OPERATOR_OR:
+                left = Builder->CreateICmpNE(left, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
+                right = Builder->CreateICmpNE(right, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+                lastValue = Builder->CreateOr(left, right, "ortmp");
+                break;
+            case Lexer::TokenType::OPERATOR_RSHIFT:
+                lastValue = Builder->CreateAShr(left, right, "rshifttmp");
+                break;
+            case Lexer::TokenType::OPERATOR_LSHIFT:
+                lastValue = Builder->CreateShl(left, right, "lshifttmp");
+                break;
+
             default:
                 LogError("Unknown binary operator");
                 break;
