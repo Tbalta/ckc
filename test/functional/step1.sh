@@ -30,6 +30,28 @@ function test
 test "return 42;" 42
 test "int32 i = 42; return i;" 42
 
+# Basic arithmetic
+test "int32 i = 42; int32 j = 2; return i + j;" 44
+test "int32 i = 42; int32 j = 2; return i - j;" 40
+test "int32 i = 42; int32 j = 2; return i * j;" 84
+test "int32 i = 42; int32 j = 2; return i / j;" 21
+test "int32 i = 42; int32 j = 2; return i % j;" 0
+
+# Basic comparisons
+test "int32 i = 42; int32 j = 2; return i == j;" 0
+test "int32 i = 42; int32 j = 2; return i != j;" 1
+test "int32 i = 42; int32 j = 2; return i < j;" 0
+test "int32 i = 42; int32 j = 2; return i <= j;" 0
+test "int32 i = 42; int32 j = 2; return i > j;" 1
+test "int32 i = 42; int32 j = 2; return i >= j;" 1
+
+# Basic logical
+test "int32 i = 42; int32 j = 0; return i > 0 && j > 0;" 0
+test "int32 i = 42; int32 j = 2; return i > 0 || j > 0;" 1
+test "int32 i = 42; int32 j = 2; return i << j;" 168
+test "int32 i = 42; int32 j = 2; return i >> j;" 10
+
+
 # If tests
 test "if 1 then return 42; else return 0; fi" 42
 

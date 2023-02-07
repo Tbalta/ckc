@@ -23,8 +23,13 @@ An expression is a line with a value.
 <multiline_statement> ::= "{" <statement>* "}"
 
 <expression> ::= ( <function_call> | <number> )
-<function_call> ::= <function_name> "(" <expression>* ")"
-<function_name> ::= "function"
+<function_parameter> ::= (<type> <identifier> ("," <type> <identifier>)*)?
+<function_def> ::= "function" <identifier> "(" <function_parameter> ")"  return <type> <before_stmt> <after_stmt>  "is" <statement>* "endfunction"
+<after_stmt> ::= "after" ":" <statement> | ""
+<before_stmt> ::= "before" ":" <statement> | ""
+
+
+
 <number> ::= [0-9]+
 
 
@@ -59,9 +64,10 @@ my_int a = x + y; // Should be valid because value can be determined at compil t
 my_int b = x + x + 1; // Is illegal.
 
 // Illegal declaration. cannot assert x + y is of type my_int.
-function test (my_int x, my_int y) returns my_int {
+function test (my_int x, my_int y) returns my_int
+is
     return x + y;
-}
+endfunction
 
 ```
 
@@ -81,12 +87,12 @@ struct whatever
 type whatever_add is whatever + my_int; // Error: no addition function found for type whatever and my_int.
 
 function operator+ (whatever y, my_int x) return whatever
-{
+is
     return whatever {
         foo = y.foo + x,
         bar;
     }
-}
+endfunction
 
 type whatever_add is whatever + my_int; // Is valid now that operator+ is defined.
 ```
@@ -115,5 +121,48 @@ with : x
 {
     "Size" => 4; // Warning attribute Size is already inherited from my_int.
     export_name => "my_int_x";
+}
+```
+
+## Execution flow control
+The execution flow control can be used to setup pre and post condition for a function call.
+These conditions will be checked at compilation time.
+
+```
+function set_flag_x (int x) returns void
+    after:
+        FLAGS_X_SET = 1;
+is
+    // Do something
+endfunction
+
+
+function only_if_x_is_set (int x) returns void
+    before:
+        FLAGS_X_SET == 1;
+is
+    // Do something
+endfunction
+
+
+function clear_if_x_is_set (int x) returns void
+    before:
+        FLAGS_X_SET == 1;
+    after:
+        FLAGS_X_SET = 0;
+is
+    // Do something
+endfunction
+
+
+// This should compile.
+{
+    set_flag_x(50);
+    only_if_x_is_set(50);
+}
+
+// This should not compile.
+{
+    only_if_x_is_set(50);
 }
 ```

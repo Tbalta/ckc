@@ -129,25 +129,27 @@ namespace Parser
         return block;
     }
 
+    std::unique_ptr<NodeExpression> parseTerm(Lexer::TokenStream &ts)
+    {
+        Lexer::Token t = ts.peek();
+        if (t.type == Lexer::TokenType::NUMBER)
+        {
+            return parseNumber(ts.get());
+        }
+        return parseIdentifier(ts.get());
+    }
+
     std::unique_ptr<NodeExpression> parseMul(Lexer::TokenStream &ts)
     {
         Lexer::Token t = ts.peek();
         // mul -> term mul'
-        std::unique_ptr<NodeExpression> term;
-        if (t.type == Lexer::TokenType::NUMBER)
-        {
-            term = parseNumber(ts.get());
-        }
-        if (t.type == Lexer::TokenType::IDENTIFIER)
-        {
-            term = parseIdentifier(ts.get());
-        }
+        std::unique_ptr<NodeExpression> term = parseTerm(ts);
         // while t is a * or / parseMul
         t = ts.peek();
-        while (t.type == Lexer::TokenType::OPERATOR_MUL || t.type == Lexer::TokenType::OPERATOR_DIV)
+        while (t.getPrecedence() == 10)
         {
             auto op = ts.get().type;
-            std::unique_ptr<NodeExpression> right = parseNumber(ts.get());
+            std::unique_ptr<NodeExpression> right = parseTerm(ts);
             term = std::make_unique<NodeBinOperator>(std::move(term), std::move(right), op);
             t = ts.peek();
         }
