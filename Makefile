@@ -50,6 +50,7 @@ CI:
 	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS_CI)
 	./unittest
 	./test/functional/step1.sh ./$(TARGET)
-
+docker:
+	docker build -t ckc .docker/
 
 -include $(DEPS)
