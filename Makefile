@@ -60,6 +60,8 @@ CI: directories $(TARGET) $(TEST_EXEC)
 	./$(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
 	./test/functional/step2.sh ./$(TARGET)
+docker:
+	docker build -t ckc .docker/
 
 -include $(DEPS)
 -include $(TEST_DEPS)
