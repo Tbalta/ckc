@@ -25,10 +25,10 @@ namespace Lexer
         OPERATOR_GE,
         OPERATOR_EQ,
         OPERATOR_NE,
-        OPERATOR_AND,
-        OPERATOR_OR,
+        BINARY_AND,
+        BINARY_OR,
         OPERATOR_LSHIFT,
-        OPERATOR_RSHIFT,
+        BINARY_RSHIFT,
         OPERATOR_ASSIGN,
         PARENTHESIS,
         KEYWORD_HASHTAG,
@@ -43,7 +43,59 @@ namespace Lexer
         TYPE,
         SEMICOLON,
         TOKEN_EOF,
-        OPERATOR_PIPE
+        OPERATOR_NOT,
+        LOGICAL_NOT,
+        LOGICAL_AND,
+        LOGICAL_OR,
+        LOGICAL_XOR
+    };
+
+        // List of tokens should not be modified after initialization
+    const static std::map<std::string, TokenType> builtinToken{
+        // Control flow
+        {"if", TokenType::KEYWORD_IF},
+        {"then", TokenType::KEYWORD_THEN},
+        {"else", TokenType::KEYWORD_ELSE},
+        {"fi", TokenType::KEYWORD_FI},
+        {"goto", TokenType::KEYWORD_GOTO},
+        {"return", TokenType::KEYWORD_RETURN},
+
+        // File structure
+        {"", TokenType::TOKEN_EOF},
+        {";", TokenType::SEMICOLON},
+        // Comparison operators
+        {"<", TokenType::OPERATOR_LT},
+        {">", TokenType::OPERATOR_GT},
+        {"=", TokenType::OPERATOR_EQ},
+        {"<=", TokenType::OPERATOR_LE},
+        {">=", TokenType::OPERATOR_GE},
+        {"!=", TokenType::OPERATOR_NE},
+
+        // Arithmetic operators
+        {"%", TokenType::OPERATOR_MOD},
+        {"+", TokenType::OPERATOR_ADD},
+        {"-", TokenType::OPERATOR_SUB},
+        {"*", TokenType::OPERATOR_MUL},
+
+        // Binary operators
+        {"|", TokenType::BINARY_OR},
+        {"~", TokenType::OPERATOR_NOT},
+        {"<<", TokenType::OPERATOR_LSHIFT},
+        {">>", TokenType::BINARY_RSHIFT},
+        {"&", TokenType::BINARY_AND},
+
+        // Logical operators
+        {"or", TokenType::LOGICAL_OR},
+        {"and", TokenType::LOGICAL_AND},
+        {"xor", TokenType::LOGICAL_XOR},
+        {"not", TokenType::LOGICAL_NOT},
+        
+        // Misc
+        {"/", TokenType::OPERATOR_DIV},
+        {":=", TokenType::OPERATOR_ASSIGN},
+        {"(", TokenType::PARENTHESIS},
+        {"#", TokenType::KEYWORD_HASHTAG},
+        {")", TokenType::PARENTHESIS},
     };
 
     enum class ModifierType
@@ -66,15 +118,17 @@ namespace Lexer
         {TokenType::OPERATOR_ADD, 20},
         {TokenType::OPERATOR_SUB, 20},
         {TokenType::OPERATOR_LSHIFT, 30},
-        {TokenType::OPERATOR_RSHIFT, 30},
+        {TokenType::BINARY_RSHIFT, 30},
         {TokenType::OPERATOR_LT, 40},
         {TokenType::OPERATOR_LE, 40},
         {TokenType::OPERATOR_GT, 40},
         {TokenType::OPERATOR_GE, 40},
         {TokenType::OPERATOR_EQ, 40},
         {TokenType::OPERATOR_NE, 40},
-        {TokenType::OPERATOR_AND, 50},
-        {TokenType::OPERATOR_OR, 60},
+        {TokenType::BINARY_AND, 50},
+        {TokenType::LOGICAL_AND, 50},
+        {TokenType::BINARY_OR, 60},
+        {TokenType::LOGICAL_OR, 60},
     };
     static std::vector<int> precedenceList{
         10,
@@ -96,6 +150,7 @@ namespace Lexer
         Token(TokenType type, std::string value, int line, int column) : type(type), value(value), line(line), column(column){};
         Token(){};
         bool isEndMultiBlock();
+        bool isUnaryOperator();
         int getPrecedence();
         bool operator==(const Token &other) const;
     };

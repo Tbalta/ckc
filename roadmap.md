@@ -24,7 +24,10 @@ block: a set of statement.
 <type> ::= "uint8" | "int8" | "uint16" | "int16" | "uint32" | "int32" | "uint64" | "int64"
 <expression> ::= <number> | <identifier> | <operation> | "(" <expression> ")"
 <operation> ::= ( <unary_operator> <expression> ) | ( <expression> <binary_operator> <expression> )
-<unary_operator> ::= "!" | "-"
+<logical_operators> ::= "and" | "or" | "xor"
+<logical_unary_operators> ::= "not"
+<unary_operators> ::= <logical_unary_operators> | "-" | "~"
+
 <binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "<<" | ">>"
 <statement> ::= (<variable_declaration> | <assignment> | <goto> | <return>) ";"
 <block> ::= <block_modifier> (<block_if> | <statement>)

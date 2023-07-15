@@ -156,9 +156,19 @@ namespace Parser
         return term;
     }
 
+    std::unique_ptr<NodeUnaryOperator> parseUnary(Lexer::TokenStream &ts)
+    {
+        auto op = ts.get().type;
+        std::unique_ptr<NodeExpression> right = parsePrecedence(ts);
+        return std::make_unique<NodeUnaryOperator>(std::move(right), op);
+    }
+
+    // Parse expressions.
     std::unique_ptr<NodeExpression> parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
     {
         assert(precedenceIndex >= 0 && precedenceIndex < Lexer::precedenceList.size());
+        if (ts.peek().isUnaryOperator())
+            return parseUnary(ts);
         if (precedenceIndex == 0)
             return parseMul(ts);
 
@@ -193,7 +203,7 @@ namespace Parser
         const std::string identifier = ts.get().value;
         const std::string equal = ts.peek().value;
         std::optional<std::unique_ptr<NodeExpression>> expression = std::nullopt;
-        if (equal == "=")
+        if (equal == Lexer::tokenTypeToString(Lexer::TokenType::OPERATOR_ASSIGN))
         {
             ts.get();
             expression = parseExpression(ts);

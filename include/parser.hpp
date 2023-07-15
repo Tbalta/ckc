@@ -8,6 +8,7 @@ namespace Parser
     class NodeIf;
     class NodeGoto;
     class NodeBinOperator;
+    class NodeUnaryOperator;
     class NodeNumber;
     class NodeVariableDeclaration;
     class NodeVariableAssignment;
@@ -29,6 +30,7 @@ namespace Parser
         virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node) = 0;
         virtual void visitNodeIdentifier(Parser::NodeIdentifier &node) = 0;
         virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
+        virtual void visitNodeUnaryOperator (Parser::NodeUnaryOperator &node) = 0;
     };
     bool hasError();
 
@@ -138,6 +140,23 @@ namespace Parser
         virtual void accept(Visitor &v) override
         {
             v.visitBinOperator(*this);
+        };
+        
+        bool isLazyOperator()
+        {
+            return op == Lexer::TokenType::LOGICAL_AND || op == Lexer::TokenType::LOGICAL_OR;
+        }
+    };
+
+    class NodeUnaryOperator : public NodeExpression
+    {
+    public:
+        std::unique_ptr<NodeExpression> right;
+        Lexer::TokenType op;
+        NodeUnaryOperator(std::unique_ptr<NodeExpression> right, Lexer::TokenType op) : right(std::move(right)), op(op){};
+        virtual void accept(Visitor &v) override
+        {
+            v.visitNodeUnaryOperator(*this);
         };
     };
 
