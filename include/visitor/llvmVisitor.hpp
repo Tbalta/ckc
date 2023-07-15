@@ -24,7 +24,6 @@ namespace visitor
         std::string currentType;
         Context::ContextProvider &contextProvider;
 
-
     public:
         ~llvmVisitor() = default;
         Value *lastValue;
@@ -55,7 +54,8 @@ namespace visitor
             Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBB);
             Builder->SetInsertPoint(mergeBB);
         }
-        virtual void visitNodeGoto(Parser::NodeGoto &node) {
+        virtual void visitNodeGoto(Parser::NodeGoto &node)
+        {
             auto block = contextProvider.getBasicBlock(node.label);
             if (block == nullptr)
             {
@@ -66,6 +66,8 @@ namespace visitor
         }
         virtual void visitBinOperator(Parser::NodeBinOperator &node)
         {
+            if (node.isLazyOperator())
+                return visitLazyBinOperator(node);
             node.left->accept(*this);
             Value *left = lastValue;
             node.right->accept(*this);
@@ -106,19 +108,13 @@ namespace visitor
             case Lexer::TokenType::OPERATOR_GE:
                 lastValue = Builder->CreateICmpSGE(left, right, "getmp");
                 break;
-            case Lexer::TokenType::OPERATOR_AND:
-            {
-                left = Builder->CreateICmpNE(left, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
-                right = Builder->CreateICmpNE(right, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+            case Lexer::TokenType::BINARY_AND:
                 lastValue = Builder->CreateAnd(left, right, "andtmp");
-            }
-                break;
-            case Lexer::TokenType::OPERATOR_OR:
-                left = Builder->CreateICmpNE(left, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
-                right = Builder->CreateICmpNE(right, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+            break;
+            case Lexer::TokenType::BINARY_OR:
                 lastValue = Builder->CreateOr(left, right, "ortmp");
                 break;
-            case Lexer::TokenType::OPERATOR_RSHIFT:
+            case Lexer::TokenType::BINARY_RSHIFT:
                 lastValue = Builder->CreateAShr(left, right, "rshifttmp");
                 break;
             case Lexer::TokenType::OPERATOR_LSHIFT:
@@ -130,6 +126,76 @@ namespace visitor
                 break;
             }
         }
+
+        virtual void visitLazyBinOperator(Parser::NodeBinOperator &node)
+        {
+            switch (node.op)
+            {
+            case Lexer::TokenType::LOGICAL_AND:
+            {
+                // Get left value
+                node.left->accept(*this);
+                Value *left = Builder->CreateICmpNE(lastValue, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
+                // Create block for right value
+                BasicBlock *leftBlock = BasicBlock::Create(*context, "left", Builder->GetInsertBlock()->getParent());
+                BasicBlock *rightBlock = BasicBlock::Create(*context, "right");
+                BasicBlock *mergeBlock = BasicBlock::Create(*context, "merge");
+
+                Builder->CreateCondBr(left, rightBlock, leftBlock);
+                Builder->SetInsertPoint(leftBlock);
+                Builder->CreateBr(mergeBlock);
+
+                // Create block for right value
+                Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(rightBlock);
+                Builder->SetInsertPoint(rightBlock);
+                node.right->accept(*this);
+                Value *right = Builder->CreateICmpNE(lastValue, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+                Builder->CreateBr(mergeBlock);
+                Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBlock);
+                Builder->SetInsertPoint(mergeBlock);
+
+                PHINode *PN = Builder->CreatePHI(Type::getInt1Ty(*context), 2, "iftmp");
+                PN->addIncoming(left, leftBlock);
+                PN->addIncoming(right, rightBlock);
+                lastValue = PN;
+            }
+            break;
+            case Lexer::TokenType::LOGICAL_OR:
+            {
+                                // Get left value
+                node.left->accept(*this);
+                Value *left = Builder->CreateICmpNE(lastValue, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
+                // Create block for right value
+                BasicBlock *leftBlock = BasicBlock::Create(*context, "left", Builder->GetInsertBlock()->getParent());
+                BasicBlock *rightBlock = BasicBlock::Create(*context, "right");
+                BasicBlock *mergeBlock = BasicBlock::Create(*context, "merge");
+
+                Builder->CreateCondBr(left, leftBlock, rightBlock);
+                Builder->SetInsertPoint(leftBlock);
+                Builder->CreateBr(mergeBlock);
+
+                // Create block for right value
+                Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(rightBlock);
+                Builder->SetInsertPoint(rightBlock);
+                node.right->accept(*this);
+                Value *right = Builder->CreateICmpNE(lastValue, ConstantInt::get(*context, APInt(1, 0, false)), "righttmp");
+                Builder->CreateBr(mergeBlock);
+                Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBlock);
+                Builder->SetInsertPoint(mergeBlock);
+
+                PHINode *PN = Builder->CreatePHI(Type::getInt1Ty(*context), 2, "iftmp");
+                PN->addIncoming(left, leftBlock);
+                PN->addIncoming(right, rightBlock);
+                lastValue = PN;
+            }
+                break;
+            default:
+                LogError("Unknown binary operator");
+                break;
+            }
+        }
+
+
         virtual void visitNode(Parser::Node &node){};
         virtual void visitNodeNumber(Parser::NodeNumber &node)
         {
@@ -151,7 +217,7 @@ namespace visitor
                 {"int64", [&]()
                  { return ConstantInt::get(*context, APInt(64, node.value, true)); }},
                 {"", [&]()
-                { return ConstantInt::get(*context, APInt(32, node.value, false)); }}};
+                 { return ConstantInt::get(*context, APInt(32, node.value, false)); }}};
             lastValue = typeMap[currentType]();
         };
         virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
@@ -222,6 +288,29 @@ namespace visitor
         {
             node.value->accept(*this);
             Builder->CreateRet(lastValue);
+        }
+
+        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node)
+        {
+            node.right->accept(*this);
+            switch (node.op)
+            {
+            case Lexer::TokenType::OPERATOR_NOT:
+                lastValue = Builder->CreateNot(lastValue, "nottmp");
+                break;
+            case Lexer::TokenType::LOGICAL_NOT:
+            {
+                auto constantZero = ConstantInt::get(lastValue->getType(), 0);
+                lastValue = Builder->CreateICmpEQ(lastValue, constantZero , "nottmp");
+            }
+                break;
+            case Lexer::TokenType::OPERATOR_SUB:
+                lastValue = Builder->CreateNeg(lastValue, "negtmp");
+                break;
+            default:
+                LogError("Unknown unary operator");
+                break;
+            }
         }
     };
 

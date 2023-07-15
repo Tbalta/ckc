@@ -21,23 +21,23 @@ TEST(LexerTest, ifTest) {
   Lexer::TokenStream tsNested(streamNested);
   ASSERT_THAT(Map(tsNested.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::KEYWORD_IF, TokenType::IDENTIFIER, TokenType::KEYWORD_THEN, TokenType::KEYWORD_IF, TokenType::IDENTIFIER, TokenType::KEYWORD_THEN, TokenType::KEYWORD_FI, TokenType::KEYWORD_FI));
 
-  auto streamIfCond = std::stringstream("if 1 == 1 then fi");
+  auto streamIfCond = std::stringstream("if 1 = 1 then fi");
   Lexer::TokenStream tsIfCond(streamIfCond);
   ASSERT_THAT(Map(tsIfCond.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::KEYWORD_IF, TokenType::NUMBER, TokenType::OPERATOR_EQ, TokenType::NUMBER, TokenType::KEYWORD_THEN, TokenType::KEYWORD_FI));
 }
 
 TEST(LexerTest, variableAssignmentTest) {
-  auto stream = std::stringstream("a = 1");
+  auto stream = std::stringstream("a := 1");
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER));
 
-  auto streamExpr = std::stringstream("a=1+2");
+  auto streamExpr = std::stringstream("a:=1+2");
   Lexer::TokenStream tsExpr(streamExpr);
   ASSERT_THAT(Map(tsExpr.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::OPERATOR_ADD, TokenType::NUMBER));
 }
 
 TEST(LexerTest, whileTest) {
-  auto stream = std::stringstream("int64 i = 0;");
+  auto stream = std::stringstream("int64 i := 0;");
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
 }

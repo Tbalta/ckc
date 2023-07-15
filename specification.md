@@ -166,3 +166,28 @@ endfunction
     only_if_x_is_set(50);
 }
 ```
+
+## Operators
+### Arithmetic operators
+* `+` : Addition.
+* `-` : Substraction.
+* `*` : Multiplication.
+* `/` : Division.
+* `%` : Modulo.
+
+### Binary operators
+* `<<` : Left shift.
+* `>>` : Right shift.
+* `~` : Bitwise not.
+* `&` : Bitwise and.
+* `|` : Bitwise or.
+
+### Logical operators
+* `and` : Logical and.
+* `or` : Logical or.
+* `xor` : Logical xor.
+* `not` : Logical not.
+
+### Special operators
+* `:=` : Assignement operator.
+

@@ -33,6 +33,13 @@ namespace visitor
             node.right->accept(*this);
             std::cout << ")";
         }
+
+        void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) override
+        {
+            std::cout << Lexer::tokenTypeToString(node.op);
+            node.right->accept(*this);
+        }
+
         void visitNode(Parser::Node &node) override
         {
             std::cout << node.value;

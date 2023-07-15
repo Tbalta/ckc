@@ -59,8 +59,14 @@ namespace Lexer
             return "TYPE";
         case TokenType::SEMICOLON:
             return ";";
-        case TokenType::OPERATOR_PIPE:
+        case TokenType::BINARY_OR:
             return "|";
+        case TokenType::OPERATOR_NOT:
+            return "!";
+        case TokenType::OPERATOR_EQ:
+            return "=";
+        case TokenType::OPERATOR_ASSIGN:
+            return ":=";
         default:
             return "UNKNOWN";
         }
@@ -72,38 +78,6 @@ namespace Lexer
         return os << tokenTypeToString(tok);
     }
 
-    // List of tokens should not be modified after initialization
-    const static std::map<std::string, TokenType> builtinToken{
-        {"if", TokenType::KEYWORD_IF},
-        {"then", TokenType::KEYWORD_THEN},
-        {"else", TokenType::KEYWORD_ELSE},
-        {"fi", TokenType::KEYWORD_FI},
-        {"goto", TokenType::KEYWORD_GOTO},
-        {"return", TokenType::KEYWORD_RETURN},
-        {";", TokenType::SEMICOLON},
-        {"+", TokenType::OPERATOR_ADD},
-        {"-", TokenType::OPERATOR_SUB},
-        {"*", TokenType::OPERATOR_MUL},
-        {"/", TokenType::OPERATOR_DIV},
-        {"%", TokenType::OPERATOR_MOD},
-        {"==", TokenType::OPERATOR_EQ},
-        {"!=", TokenType::OPERATOR_NE},
-        {"<", TokenType::OPERATOR_LT},
-        {">", TokenType::OPERATOR_GT},
-        {"<=", TokenType::OPERATOR_LE},
-        {">=", TokenType::OPERATOR_GE},
-        {"&&", TokenType::OPERATOR_AND},
-        {"||", TokenType::OPERATOR_OR},
-        {"<<", TokenType::OPERATOR_LSHIFT},
-        {">>", TokenType::OPERATOR_RSHIFT},
-        {"=", TokenType::OPERATOR_ASSIGN},
-        {"(", TokenType::PARENTHESIS},
-        {"#", TokenType::KEYWORD_HASHTAG},
-        {")", TokenType::PARENTHESIS},
-        {"", TokenType::TOKEN_EOF},
-        {"|", TokenType::OPERATOR_PIPE}
-
-    };
 
     static std::map<std::string, TokenType> typeToken{
         {"uint8", TokenType::TYPE},
@@ -270,6 +244,16 @@ namespace Lexer
             tokens.push_back(get());
         }
         return tokens;
+    }
+
+    bool Token::isUnaryOperator()
+    {
+        std::unordered_set<TokenType> unaryOperators{
+            TokenType::OPERATOR_NOT,
+            TokenType::LOGICAL_NOT,
+            TokenType::OPERATOR_SUB
+            };
+        return unaryOperators.find(type) != unaryOperators.end();
     }
 
 }

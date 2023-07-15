@@ -23,10 +23,12 @@ using namespace llvm;
 int main(int argc, char **argv)
 {
     int silent = 0;
+    int print_llvm = 0;
     std::istream *input = nullptr;
     std::string inputFileName = "";
     static struct option long_options[] = {
         {"silent", no_argument, &silent, 's'},
+        {"print-llvm", no_argument, &print_llvm, 0},
         {0, 0, 0, 0}};
     int c;
     for (int i = 0; optind + i < argc; i += optind)
@@ -129,6 +131,8 @@ int main(int argc, char **argv)
     }
 
     Builder->CreateUnreachable();
+    if (print_llvm)
+    Mod->print(llvm::outs(), nullptr);
 
     auto Filename = "output.o";
     std::error_code EC;
