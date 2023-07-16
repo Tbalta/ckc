@@ -74,6 +74,19 @@ test "if 1 then return 42; else return 0; fi" 42
 
 # Advanced tests
 test "int32 i := 0; int32 res := 1; int32 x := 5; #myif if i < x then res := res * 2; i := i + 1; goto myif; else return res; fi" 32
+test 'uint32 acc := 0;
+uint32 max := 10;
+uint32 target := max;
+
+#loop
+if target > 0 then
+    acc := acc + target;
+    target := target - 1;
+    goto loop;
+fi
+
+return acc;
+' 55
 
 # Test unary operators
 test "int32 i := 42; return not i;" 0
