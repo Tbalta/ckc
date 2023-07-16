@@ -22,6 +22,11 @@
 using namespace llvm;
 int main(int argc, char **argv)
 {
+    const std::string usage = "Usage: " + std::string(argv[0]) + " [options] [file]\n"
+                                                                 "Options:\n"
+                                                                 "  -s, --silent        Do not print AST\n"
+                                                                 "  --print-llvm        Print LLVM IR\n"
+                                                                 "  -h, --help          Print this help message\n";
     int silent = 0;
     int print_llvm = 0;
     std::istream *input = nullptr;
@@ -29,20 +34,26 @@ int main(int argc, char **argv)
     static struct option long_options[] = {
         {"silent", no_argument, &silent, 's'},
         {"print-llvm", no_argument, &print_llvm, 0},
+        {"help", no_argument, nullptr, 'h'},
         {0, 0, 0, 0}};
     int c;
     for (int i = 0; optind + i < argc; i += optind)
     {
-        while ((c = getopt_long(argc - i, argv + i, "s", long_options, nullptr)) != -1)
+        while ((c = getopt_long(argc - i, argv + i, "sh", long_options, nullptr)) != -1)
         {
             switch (c)
             {
             case 0:
                 break;
-            default:
-                input = new std::ifstream(optarg);
-                inputFileName = optarg;
+            case 's':
+                silent = 1;
                 break;
+            case 'h':
+                std::cout << usage;
+                return 0;
+            default:
+                std::cout << usage;
+                return 1;
             }
         }
         if (optind + i < argc)
@@ -60,7 +71,8 @@ int main(int argc, char **argv)
 
     if (input == nullptr)
     {
-        errs() << "No input file";
+        delete input;
+        errs() << "No input file\n";
         return 1;
     }
     auto TargetTriple = sys::getDefaultTargetTriple();
@@ -132,7 +144,7 @@ int main(int argc, char **argv)
 
     Builder->CreateUnreachable();
     if (print_llvm)
-    Mod->print(llvm::outs(), nullptr);
+        Mod->print(llvm::outs(), nullptr);
 
     auto Filename = "output.o";
     std::error_code EC;
