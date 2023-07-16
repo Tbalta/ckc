@@ -209,7 +209,9 @@ namespace Lexer
     {
         std::unordered_set<TokenType> endMultiBlock{
             TokenType::KEYWORD_ELSE,
-            TokenType::KEYWORD_FI};
+            TokenType::KEYWORD_FI,
+            TokenType::TOKEN_EOF
+            };
         return endMultiBlock.find(type) != endMultiBlock.end();
     }
 
