@@ -16,7 +16,11 @@ Ada provides unique functionalities such as subtyping and contract programming. 
 The goal of this project is to create a language that is easy to use, with a lot of compile-time features, while providing full control over the assembly generated.
 
 Ideally, the language should be powerful enough to be used to write a small operating system.
-
+# Compilation
+## Dependancies
+- [llvm=10.0.0]
+- [googletest=1.10.0]
+- [libgmock-dev]
 # How ?
 The file [specification.md](specification.md) will contain objective specifications of the language. This file describes general ideas and guidelines for the language, and will serve as a guide for the [roadmap](roadmap.md).
 
