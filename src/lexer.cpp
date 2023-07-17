@@ -164,7 +164,7 @@ namespace Lexer
 
     std::string TokenStream::getLine(int line)
     {
-        if (line - 1 < lines.size())
+        if (line - 1 < int(lines.size()))
         {
             return lines[line - 1];
         }

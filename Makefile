@@ -1,5 +1,6 @@
 # c++ program to compile
 TARGET = gkc
+TEST_EXEC = unittest
 BUILD_DIR = build
 SOURCE= $(wildcard src/*.cpp)
 TEST_SOURCE = $(wildcard test/*.cpp) $(filter-out src/main.cpp, $(SOURCE))
@@ -35,6 +36,7 @@ clean:
 	$(RM) -r $(BUILD_DIR)/test
 	$(RM) -r $(BUILD_DIR)/*
 	$(RM) $(TARGET)
+	$(RM) $(TEST_EXEC)
 	$(RM) *.o
 	$(RM) *.out
 	cd test && $(MAKE) clean
@@ -51,9 +53,9 @@ test: directories $(TEST_OBJ2) $(TARGET)
 
 .PHONY: CI
 CI:
-	$(CXX) -o unittest $(TEST_SOURCE) $(CXXFLAGS_CI) $(TEST_LIBS)
+	$(CXX) -o $(TEST_EXEC) $(TEST_SOURCE) $(CXXFLAGS_CI) $(TEST_LIBS)
 	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS_CI)
-	./unittest
+	./$(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
 
 
