@@ -4,7 +4,7 @@
 executablePath=$1
 text_no_input_file="No input file"
 text_help=$(cat << EOF
-Usage: ./main [options] [file]
+Usage: ./gkc [options] [file]
 Options:
   -s, --silent        Do not print AST
   --print-llvm        Print LLVM IR
