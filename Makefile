@@ -1,5 +1,5 @@
 # c++ program to compile
-TARGET = main
+TARGET = gkc
 BUILD_DIR = build
 SOURCE= $(wildcard *.cpp)
 TEST_SOURCE = $(wildcard test/*.cpp) $(filter-out main.cpp, $(SOURCE))
