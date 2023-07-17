@@ -2,6 +2,15 @@
 
 
 executablePath=$1
+text_no_input_file="No input file"
+text_help=$(cat << EOF
+Usage: ./main [options] [file]
+Options:
+  -s, --silent        Do not print AST
+  --print-llvm        Print LLVM IR
+  -h, --help          Print this help message
+EOF
+)
 
 function test
 {
@@ -9,7 +18,7 @@ function test
     expected=$2
 
     echo "$toCompile" > "functest.kc"
-    ./$executablePath "functest.kc" --silent
+    $executablePath "functest.kc" --silent
     if [ $? -ne 0 ]; then
         echo "Compilation failed: $toCompile"
         exit 1
@@ -22,6 +31,46 @@ function test
     ./a.out
     result=$?
     if [ $result -ne "$expected" ]; then
+        echo "Wrong output: $toCompile | Expected: $expected Got: $result"
+        exit 1
+    fi
+}
+
+function test_stdout
+{
+    toCompile=$1
+    command=$2
+    expected=$3
+    expected_return_code=$4
+
+    echo "$toCompile" > "functest.kc"
+    result=$($executablePath $command 2>/dev/null)
+    return_code=$?
+    if [ $return_code -ne $expected_return_code ]; then
+        echo "return code unexpected: $toCompile | Expected: $expected_return_code Got: $return_code"
+        exit 1
+    fi
+    if [ "$result" != "$expected" ]; then
+        echo "Wrong output: $toCompile | Expected: $expected Got: $result"
+        exit 1
+    fi
+}
+
+function test_stderr
+{
+    toCompile=$1
+    command=$2
+    expected=$3
+    expected_return_code=$4
+
+    echo "$toCompile" > "functest.kc"
+    result=$(./$executablePath $command 2>&1 >/dev/null)
+    return_code=$?
+    if [ $return_code -ne $expected_return_code ]; then
+        echo "return code unexpected: $toCompile | Expected: $expected_return_code Got: $return_code"
+        exit 1
+    fi
+    if [ "$result" != "$expected" ]; then
         echo "Wrong output: $toCompile | Expected: $expected Got: $result"
         exit 1
     fi
@@ -91,3 +140,8 @@ return acc;
 # Test unary operators
 test "int32 i := 42; return not i;" 0
 test "return -42;" 214
+
+
+# Wrong option
+test_stderr "Test no options" "" "$text_no_input_file" 1
+test_stdout "Test wrong option" "--wrong-option" "$text_help" 1
