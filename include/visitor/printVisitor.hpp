@@ -36,7 +36,7 @@ namespace visitor
 
         void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) override
         {
-            std::cout << Lexer::tokenTypeToString(node.op);
+            std::cout << Lexer::tokenTypeToString(node.op) << " ";
             node.right->accept(*this);
         }
 

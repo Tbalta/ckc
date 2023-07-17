@@ -50,54 +50,69 @@ namespace Lexer
         LOGICAL_XOR
     };
 
-        // List of tokens should not be modified after initialization
-    const static std::map<std::string, TokenType> builtinToken{
+    template <typename K, typename V>
+#ifdef PROD
+    constexpr
+#endif
+        std::map<V, K>
+        reverseMap(std::map<K, V> const &map)
+    {
+        std::map<V, K> rMap;
+        for (auto const &[k, v] : map)
+        {
+            rMap[v] = k;
+        }
+        return rMap;
+    }
+
+    // List of tokens should not be modified after initialization
+    const static std::map<TokenType, std::string> tokenToStringMap{
         // Control flow
-        {"if", TokenType::KEYWORD_IF},
-        {"then", TokenType::KEYWORD_THEN},
-        {"else", TokenType::KEYWORD_ELSE},
-        {"fi", TokenType::KEYWORD_FI},
-        {"goto", TokenType::KEYWORD_GOTO},
-        {"return", TokenType::KEYWORD_RETURN},
+        {TokenType::KEYWORD_IF, "if"},
+        {TokenType::KEYWORD_THEN, "then"},
+        {TokenType::KEYWORD_ELSE, "else"},
+        {TokenType::KEYWORD_FI, "fi"},
+        {TokenType::KEYWORD_GOTO, "goto"},
+        {TokenType::KEYWORD_RETURN, "return"},
 
         // File structure
-        {"", TokenType::TOKEN_EOF},
-        {";", TokenType::SEMICOLON},
+        {TokenType::TOKEN_EOF, ""},
+        {TokenType::SEMICOLON, ";"},
         // Comparison operators
-        {"<", TokenType::OPERATOR_LT},
-        {">", TokenType::OPERATOR_GT},
-        {"=", TokenType::OPERATOR_EQ},
-        {"<=", TokenType::OPERATOR_LE},
-        {">=", TokenType::OPERATOR_GE},
-        {"!=", TokenType::OPERATOR_NE},
+        {TokenType::OPERATOR_LT, "<"},
+        {TokenType::OPERATOR_GT, ">"},
+        {TokenType::OPERATOR_EQ, "="},
+        {TokenType::OPERATOR_LE, "<="},
+        {TokenType::OPERATOR_GE, ">="},
+        {TokenType::OPERATOR_NE, "!="},
 
         // Arithmetic operators
-        {"%", TokenType::OPERATOR_MOD},
-        {"+", TokenType::OPERATOR_ADD},
-        {"-", TokenType::OPERATOR_SUB},
-        {"*", TokenType::OPERATOR_MUL},
+        {TokenType::OPERATOR_MOD, "%"},
+        {TokenType::OPERATOR_ADD, "+"},
+        {TokenType::OPERATOR_SUB, "-"},
+        {TokenType::OPERATOR_MUL, "*"},
 
         // Binary operators
-        {"|", TokenType::BINARY_OR},
-        {"~", TokenType::OPERATOR_NOT},
-        {"<<", TokenType::OPERATOR_LSHIFT},
-        {">>", TokenType::BINARY_RSHIFT},
-        {"&", TokenType::BINARY_AND},
+        {TokenType::BINARY_OR, "|"},
+        {TokenType::OPERATOR_NOT, "~"},
+        {TokenType::OPERATOR_LSHIFT, "<<"},
+        {TokenType::BINARY_RSHIFT, ">>"},
+        {TokenType::BINARY_AND, "&"},
 
         // Logical operators
-        {"or", TokenType::LOGICAL_OR},
-        {"and", TokenType::LOGICAL_AND},
-        {"xor", TokenType::LOGICAL_XOR},
-        {"not", TokenType::LOGICAL_NOT},
-        
-        // Misc
-        {"/", TokenType::OPERATOR_DIV},
-        {":=", TokenType::OPERATOR_ASSIGN},
-        {"(", TokenType::PARENTHESIS},
-        {"#", TokenType::KEYWORD_HASHTAG},
-        {")", TokenType::PARENTHESIS},
-    };
+        {TokenType::LOGICAL_OR, "or"},
+        {TokenType::LOGICAL_AND, "and"},
+        {TokenType::LOGICAL_XOR, "xor"},
+        {TokenType::LOGICAL_NOT, "not"},
 
+        // Misc
+        {TokenType::OPERATOR_DIV, "/"},
+        {TokenType::OPERATOR_ASSIGN, ":="},
+        {TokenType::PARENTHESIS, "("},
+        {TokenType::KEYWORD_HASHTAG, "#"},
+        {TokenType::PARENTHESIS, ")"},
+    };
+    const static std::map<std::string, TokenType> stringToTokenMap = reverseMap(tokenToStringMap);
     enum class ModifierType
     {
         Named

@@ -11,73 +11,20 @@ namespace Lexer
 {
     std::string tokenTypeToString(TokenType type)
     {
-        switch (type)
+        auto it = tokenToStringMap.find(type);
+        if (it != tokenToStringMap.end())
         {
-        case TokenType::KEYWORD:
-            return "KEYWORD";
-        case TokenType::OPERATOR:
-            return "OPERATOR";
-        case TokenType::PARENTHESIS:
-            return "PARENTHESIS";
-        case TokenType::NUMBER:
-            return "NUMBER";
-        case TokenType::IDENTIFIER:
-            return "IDENTIFIER";
-        case TokenType::OPERATOR_ADD:
-            return "+";
-        case TokenType::OPERATOR_SUB:
-            return "-";
-        case TokenType::OPERATOR_MUL:
-            return "*";
-        case TokenType::OPERATOR_DIV:
-            return "/";
-        case TokenType::OPERATOR_MOD:
-            return "%";
-        case TokenType::OPERATOR_LT:
-            return "<";
-        case TokenType::OPERATOR_LE:
-            return "<=";
-        case TokenType::OPERATOR_GT:
-            return ">";
-        case TokenType::OPERATOR_GE:
-            return ">=";
-        case TokenType::KEYWORD_HASHTAG:
-            return "#";
-        case TokenType::KEYWORD_IF:
-            return "if";
-        case TokenType::KEYWORD_GOTO:
-            return "goto";
-        case TokenType::KEYWORD_RETURN:
-            return "return";
-        case TokenType::KEYWORD_ELSE:
-            return "else";
-        case TokenType::KEYWORD_THEN:
-            return "then";
-        case TokenType::KEYWORD_FI:
-            return "fi";
-        case TokenType::TYPE:
-            return "TYPE";
-        case TokenType::SEMICOLON:
-            return ";";
-        case TokenType::BINARY_OR:
-            return "|";
-        case TokenType::OPERATOR_NOT:
-            return "!";
-        case TokenType::OPERATOR_EQ:
-            return "=";
-        case TokenType::OPERATOR_ASSIGN:
-            return ":=";
-        default:
-            return "UNKNOWN";
+            return it->second;
         }
         return "UNKNOWN";
     }
+
+
 
     std::ostream &operator<<(std::ostream &os, TokenType const &tok)
     {
         return os << tokenTypeToString(tok);
     }
-
 
     static std::map<std::string, TokenType> typeToken{
         {"uint8", TokenType::TYPE},
@@ -142,7 +89,7 @@ namespace Lexer
     {
         std::string token;
         char c = input.peek();
-        if(std::isalnum(c) || c == '_')
+        if (std::isalnum(c) || c == '_')
         {
             while ((std::isalnum(c) || c == '_') && c != EOF)
             {
@@ -175,9 +122,9 @@ namespace Lexer
         int currentColumn = column;
         std::string token = getNextToken();
         Lexer::TokenType type = TokenType::IDENTIFIER;
-        if (builtinToken.find(token) != builtinToken.end())
+        if (stringToTokenMap.find(token) != stringToTokenMap.end())
         {
-            type = builtinToken.at(token);
+            type = stringToTokenMap.at(token);
         }
         else if (typeToken.find(token) != typeToken.end())
         {
@@ -210,8 +157,7 @@ namespace Lexer
         std::unordered_set<TokenType> endMultiBlock{
             TokenType::KEYWORD_ELSE,
             TokenType::KEYWORD_FI,
-            TokenType::TOKEN_EOF
-            };
+            TokenType::TOKEN_EOF};
         return endMultiBlock.find(type) != endMultiBlock.end();
     }
 
@@ -253,8 +199,7 @@ namespace Lexer
         std::unordered_set<TokenType> unaryOperators{
             TokenType::OPERATOR_NOT,
             TokenType::LOGICAL_NOT,
-            TokenType::OPERATOR_SUB
-            };
+            TokenType::OPERATOR_SUB};
         return unaryOperators.find(type) != unaryOperators.end();
     }
 
