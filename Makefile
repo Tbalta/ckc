@@ -1,11 +1,11 @@
 # c++ program to compile
 TARGET = gkc
 BUILD_DIR = build
-SOURCE= $(wildcard *.cpp)
-TEST_SOURCE = $(wildcard test/*.cpp) $(filter-out main.cpp, $(SOURCE))
+SOURCE= $(wildcard src/*.cpp)
+TEST_SOURCE = $(wildcard test/*.cpp) $(filter-out src/main.cpp, $(SOURCE))
 OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
 TEST_OBJ= $(addprefix $(BUILD_DIR)/, $(TEST_SOURCE:.cpp=.o))
-TEST_OBJ2= $(filter-out $(BUILD_DIR)/main.o, $(OBJ))
+TEST_OBJ2= $(filter-out $(BUILD_DIR)/src/main.o, $(OBJ))
 
 TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -lgmock -lgmock_main
 DEPS = $(OBJ:.o=.d)
@@ -22,6 +22,7 @@ prod: $(TARGET)
 directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/test
+	mkdir -p $(BUILD_DIR)/src
 
 
 $(TARGET): $(OBJ)
@@ -31,16 +32,18 @@ $(BUILD_DIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -r $(BUILD_DIR)/test
-	rm -f $(BUILD_DIR)/*
+	$(RM) -r $(BUILD_DIR)/test
+	$(RM) -r $(BUILD_DIR)/*
 	$(RM) $(TARGET)
+	$(RM) *.o
+	$(RM) *.out
 	cd test && $(MAKE) clean
 
 compile: $(TARGET)
 	./$(TARGET) test.kc
 	gcc -o demo output.o
 
-test: $(TEST_OBJ2) $(TARGET)
+test: directories $(TEST_OBJ2) $(TARGET)
 	cd test && $(MAKE)
 	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS) -DTEST
 	./unittest
