@@ -64,6 +64,7 @@ namespace Lexer
         int current = input.tellg();
         std::string line;
         std::getline(input, line);
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
         input.seekg(current);
         return line;
     }
@@ -100,7 +101,7 @@ namespace Lexer
             moveHead();
             return token;
         }
-        while (!std::isalnum(c) && c != ' ' && c != '\n' && c != EOF)
+        while (!std::isalnum(c) && c != ' ' && c != '\r' && c != '\n' && c != EOF)
         {
             token += input.get();
             column++;
@@ -149,7 +150,7 @@ namespace Lexer
 
     bool TokenStream::isEmpty()
     {
-        return input.eof();
+        return input.eof() || input.peek() == EOF;
     }
 
     bool Token::isEndMultiBlock()
