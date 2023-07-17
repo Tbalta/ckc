@@ -28,7 +28,7 @@ block: a set of statement.
 <logical_unary_operators> ::= "not"
 <unary_operators> ::= <logical_unary_operators> | "-" | "~"
 
-<binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "<<" | ">>"
+<binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "<<" | ">>"
 <statement> ::= (<variable_declaration> | <assignment> | <goto> | <return>) ";"
 <block> ::= <block_modifier> (<block_if> | <statement>)
 <block_if> ::= "if" <expression> "then" <block> [ "else" <block>] "fi"
