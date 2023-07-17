@@ -41,3 +41,10 @@ TEST(LexerTest, whileTest) {
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
 }
+
+TEST(LexerTest, crlf)
+{
+  auto stream = std::stringstream("int64 i := 0;\r\nint64 j := 0;\r\n");
+  Lexer::TokenStream ts(stream);
+  ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON, TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
+}
