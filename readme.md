@@ -32,6 +32,3 @@ The grammar between each step is independent. This means that the compiler at th
 The features of the steps are incremental. This means that the features of the nth step will also be available in the n+1 step with rare exceptions.
 
 During the development phase, the specification of the current step may be changed as problems arise.
-
-
-
