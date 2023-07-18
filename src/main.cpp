@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     std::string inputFileName = "";
     static struct option long_options[] = {
         {"silent", no_argument, &silent, 's'},
-        {"print-llvm", no_argument, &print_llvm, 0},
+        {"print-llvm", no_argument, &print_llvm, 1},
         {"help", no_argument, nullptr, 'h'},
         {0, 0, 0, 0}};
     int c;
@@ -44,6 +44,8 @@ int main(int argc, char **argv)
             switch (c)
             {
             case 0:
+                break;
+            case 1:
                 break;
             case 's':
                 silent = 1;
@@ -110,7 +112,7 @@ int main(int argc, char **argv)
         return 1;
     }
     Lexer::TokenStream ts(*input, inputFileName);
-    auto contextProvider = Context::ContextProvider();
+    auto contextProvider = Context::ContextProvider::getInstance();
 
     auto Context = std::make_shared<LLVMContext>();
     auto Mod = std::make_shared<Module>("my cool jit", *Context);
@@ -118,10 +120,10 @@ int main(int argc, char **argv)
     Mod->setTargetTriple(TargetTriple);
     // Create a new builder for the module.
     auto Builder = std::make_shared<IRBuilder<>>(*Context);
-    auto function = Function::Create(FunctionType::get(Type::getInt32Ty(*Context), false), Function::ExternalLinkage, "main", Mod.get());
-    auto entry = BasicBlock::Create(*Context, "entry", function);
+    // auto function = Function::Create(FunctionType::get(Type::getInt32Ty(*Context), false), Function::ExternalLinkage, "main", Mod.get());
+    // auto entry = BasicBlock::Create(*Context, "entry", function);
 
-    Builder->SetInsertPoint(entry);
+    // Builder->SetInsertPoint(entry);
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
     while (!ts.isEmpty())
     {
@@ -142,7 +144,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    Builder->CreateUnreachable();
+    // Builder->CreateUnreachable();
     if (print_llvm)
         Mod->print(llvm::outs(), nullptr);
 

@@ -21,15 +21,22 @@ namespace Parser
         ts.unexpectedToken(t, reference);
         while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
             continue;
+        if (ts.peek().type == Lexer::TokenType::TOKEN_EOF)
+        {
+            throw std::runtime_error("Unexpected end of file");
+            // std::cerr << "Unexpected end of file" << std::endl;
+        }
     }
 
     std::unique_ptr<NodeMultiBlock> parseMultiBlock(Lexer::TokenStream &ts)
     {
         std::vector<std::unique_ptr<NodeBlock>> blocks;
+        Lexer::LexerContext::pushContext();
         while (!ts.peek().isEndMultiBlock())
         {
             blocks.push_back(parseBlock(ts));
         }
+        Lexer::LexerContext::popContext();
         return std::make_unique<NodeMultiBlock>(std::move(blocks));
     }
 
@@ -47,6 +54,61 @@ namespace Parser
         }
         checkToken(fiToken, Lexer::TokenType::KEYWORD_FI, ts);
         return std::make_unique<NodeIf>(std::move(condition), std::move(thenStatement), std::move(elseStatement));
+    }
+
+
+     // Parse a function call.
+    // ts shall be at the function name.
+    std::unique_ptr<NodeFunction> parseFunction (Lexer::TokenStream &ts)
+    {
+        // Parse the function name.
+        checkToken(ts.peek(), Lexer::TokenType::IDENTIFIER, ts);
+        const std::string name = ts.get().value;
+        Lexer::LexerContext::addToken(name, Lexer::TokenType::FUNCTION_NAME);
+        Lexer::LexerContext::pushContext();
+        // Parse the parameters.
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        std::vector<std::pair<std::string, std::string>> parameters; // <type, name>
+        while (ts.peek().type != Lexer::TokenType::PARENTHESIS_CLOSE)
+        {
+            checkToken(ts.peek(), Lexer::TokenType::TYPE, ts);
+            const std::string type = ts.get().value;
+            checkToken(ts.peek(), Lexer::TokenType::IDENTIFIER, ts);
+            const std::string identifier = ts.get().value;
+            Lexer::LexerContext::addToken(identifier, Lexer::TokenType::VARIABLE_NAME);
+            parameters.push_back({type, identifier});
+            if (ts.peek().type == Lexer::TokenType::COMMA)
+                ts.get();
+            else
+                checkToken(ts.peek(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);            
+        }
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        
+        // Optional return type.
+        std::optional<std::string> returnType = std::nullopt;
+        if (ts.peek().type == Lexer::TokenType::KEYWORD_RETURN)
+        {
+            ts.get();
+            checkToken(ts.peek(), Lexer::TokenType::TYPE, ts);
+            returnType = ts.get().value;
+        }
+
+        // Check for the function body.
+        std::optional<std::unique_ptr<NodeMultiBlock>> body = std::nullopt;
+        if (ts.peek().type == Lexer::TokenType::KEYWORD_IS)
+        {
+            ts.get();
+            body = parseMultiBlock(ts);
+            checkToken(ts.get(), Lexer::TokenType::KEYWORD_ENDFUNCTION, ts);
+        } else 
+        {
+            checkToken(ts.get(), Lexer::TokenType::SEMICOLON, ts);
+        }
+        Lexer::LexerContext::popContext();
+
+        // Create the function.
+        return std::make_unique<NodeFunction>(name, parameters, returnType, std::move(body));
+
     }
 
     std::unique_ptr<NodeGoto> parseGoto(const Lexer::Token &t, Lexer::TokenStream &ts)
@@ -82,7 +144,7 @@ namespace Parser
         case Lexer::TokenType::KEYWORD_RETURN:
             statement = parseReturn(ts.get(), ts);
             break;
-        case Lexer::TokenType::IDENTIFIER:
+        case Lexer::TokenType::VARIABLE_NAME:
             statement = parseVariableAssignment(ts);
             break;
         case Lexer::TokenType::TYPE:
@@ -119,6 +181,10 @@ namespace Parser
         case Lexer::TokenType::KEYWORD_IF:
             block = parseIf(ts.get(), ts);
             break;
+        case Lexer::TokenType::KEYWORD_FUNCTION:
+            ts.get();
+            block = parseFunction(ts);
+            break;
         default:
             block = parseStatement(ts);
             break;
@@ -129,12 +195,33 @@ namespace Parser
         return block;
     }
 
+    std::unique_ptr<NodeFunctionCall> parseFunctionCall(Lexer::TokenStream &ts)
+    {
+        const std::string name = ts.get().value;
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        std::vector<std::unique_ptr<NodeExpression>> parameters;
+        while (ts.peek().type != Lexer::TokenType::PARENTHESIS_CLOSE)
+        {
+            parameters.push_back(parsePrecedence(ts));
+            if (ts.peek().type == Lexer::TokenType::COMMA)
+                ts.get();
+            else
+                checkToken(ts.peek(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        }
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        return std::make_unique<NodeFunctionCall>(name, std::move(parameters));
+    }
+
     std::unique_ptr<NodeExpression> parseTerm(Lexer::TokenStream &ts)
     {
         Lexer::Token t = ts.peek();
         if (t.type == Lexer::TokenType::NUMBER)
         {
             return parseNumber(ts.get());
+        }
+        if (t.type == Lexer::TokenType::FUNCTION_NAME)
+        {
+            return parseFunctionCall(ts);
         }
         return parseIdentifier(ts.get());
     }
@@ -208,6 +295,7 @@ namespace Parser
             ts.get();
             expression = parseExpression(ts);
         }
+        Lexer::LexerContext::addToken(identifier, Lexer::TokenType::VARIABLE_NAME);
         return std::make_unique<NodeVariableDeclaration>(type, identifier, std::move(expression));
     }
 
@@ -218,4 +306,6 @@ namespace Parser
         std::unique_ptr<NodeExpression> expression = parseExpression(ts);
         return std::make_unique<NodeVariableAssignment>(identifier, std::move(expression));
     }
+
+   
 }

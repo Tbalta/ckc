@@ -16,6 +16,8 @@ namespace Parser
     class NodeIdentifier;
     class NodeMultiBlock;
     class NodeReturn;
+    class NodeFunction;
+    class NodeFunctionCall;
 
     class Visitor
     {
@@ -31,6 +33,8 @@ namespace Parser
         virtual void visitNodeIdentifier(Parser::NodeIdentifier &node) = 0;
         virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
         virtual void visitNodeUnaryOperator (Parser::NodeUnaryOperator &node) = 0;
+        virtual void visitNodeFunction(Parser::NodeFunction &node) = 0;
+        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
     };
     bool hasError();
 
@@ -71,7 +75,11 @@ namespace Parser
     {
     public:
         std::optional<std::unique_ptr<NodeBlockModifier>> modifier;
-        virtual void accept(Visitor &v) = 0;
+        virtual void accept(Visitor &v)
+        {
+            if (modifier.has_value())
+                modifier.value()->accept(v);
+        };
     };
 
     class NodeMultiBlock : public NodeBlock
@@ -81,6 +89,7 @@ namespace Parser
         NodeMultiBlock(std::vector<std::unique_ptr<NodeBlock>> blocks) : blocks(std::move(blocks)){};
         virtual void accept(Visitor &v)
         {
+            NodeBlock::accept(v);
             for (auto &block : blocks)
             {
                 block->accept(v);
@@ -92,7 +101,10 @@ namespace Parser
     {
     public:
         virtual ~NodeStatement() = default;
-        virtual void accept(Visitor &v) = 0;
+        virtual void accept(Visitor &v)
+        {
+            NodeBlock::accept(v);
+        };
     };
 
     class NodeIf : public NodeBlock
@@ -104,6 +116,7 @@ namespace Parser
         NodeIf(std::unique_ptr<NodeExpression> condition, std::unique_ptr<NodeMultiBlock> thenStatement, std::optional<std::unique_ptr<NodeMultiBlock>> elseStatement) : condition(std::move(condition)), thenStatement(std::move(thenStatement)), elseStatement(std::move(elseStatement)){};
         void accept(Visitor &v) override
         {
+            NodeBlock::accept(v);
             v.visitNodeIf(*this);
         };
     };
@@ -115,6 +128,7 @@ namespace Parser
         NodeGoto(std::string label) : label(label){};
         void accept(Visitor &v) override
         {
+            NodeStatement::accept(v);
             v.visitNodeGoto(*this);
         };
     };
@@ -126,6 +140,7 @@ namespace Parser
         NodeReturn(std::unique_ptr<NodeExpression> value) : value(std::move(value)){};
         void accept(Visitor &v) override
         {
+            NodeStatement::accept(v);
             v.visitNodeReturn(*this);
         };
     };
@@ -191,6 +206,7 @@ namespace Parser
         NodeVariableDeclaration(std::string type, std::string name, std::optional<std::unique_ptr<NodeExpression>> value) : type(type), name(name), value(std::move(value)){};
         void accept(Visitor &v) override
         {
+            NodeStatement::accept(v);
             v.visitNodeVariableDeclaration(*this);
         };
     };
@@ -203,9 +219,39 @@ namespace Parser
         NodeVariableAssignment(std::string name, std::unique_ptr<NodeExpression> value) : name(name), value(std::move(value)){};
         void accept(Visitor &v) override
         {
+            NodeStatement::accept(v);
             v.visitNodeVariableAssignment(*this);
         };
     };
+
+    class NodeFunctionCall : public NodeExpression
+    {
+    public:
+        std::string name;
+        std::vector<std::unique_ptr<NodeExpression>> arguments;
+        NodeFunctionCall(std::string name, std::vector<std::unique_ptr<NodeExpression>> arguments) : name(name), arguments(std::move(arguments)){};
+        void accept(Visitor &v) override
+        {
+            v.visitNodeFunctionCall(*this);
+        };
+    };
+
+    class NodeFunction : public NodeBlock
+    {
+        public:
+        std::string name;
+        std::vector<std::pair<std::string, std::string>> arguments;
+        std::optional<std::unique_ptr<NodeMultiBlock>> body;
+        std::optional<std::string> returnType;
+        NodeFunction(std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<std::unique_ptr<NodeMultiBlock>> body) : name(name), arguments(arguments), returnType(returnType), body(std::move(body)) {}
+
+        void accept(Visitor &v) override
+        {
+            NodeBlock::accept(v);
+            v.visitNodeFunction(*this);
+        };
+    };
+
 
     std::unique_ptr<NodeStatement> parseStatement(Lexer::TokenStream &ts);
     std::unique_ptr<NodeExpression> parseExpression(Lexer::TokenStream &ts);

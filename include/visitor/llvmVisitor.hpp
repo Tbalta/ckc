@@ -30,10 +30,10 @@ namespace visitor
         llvmVisitor(std::shared_ptr<LLVMContext> context, std::shared_ptr<IRBuilder<>> Builder, std::shared_ptr<Module> module, Context::ContextProvider &contextProvider) : context(context), Builder(Builder), TheModule(module), contextProvider(contextProvider){};
         virtual void visitNodeIf(Parser::NodeIf &node)
         {
-            if (node.modifier.has_value())
-            {
-                node.modifier.value()->accept(*this);
-            }
+            // if (node.modifier.has_value())
+            // {
+            //     node.modifier.value()->accept(*this);
+            // }
             node.condition->accept(*this);
             Value *condV = lastValue;
             BasicBlock *thenBB = BasicBlock::Create(*context, "then", Builder->GetInsertBlock()->getParent());
@@ -110,7 +110,7 @@ namespace visitor
                 break;
             case Lexer::TokenType::BINARY_AND:
                 lastValue = Builder->CreateAnd(left, right, "andtmp");
-            break;
+                break;
             case Lexer::TokenType::BINARY_OR:
                 lastValue = Builder->CreateOr(left, right, "ortmp");
                 break;
@@ -162,7 +162,7 @@ namespace visitor
             break;
             case Lexer::TokenType::LOGICAL_OR:
             {
-                                // Get left value
+                // Get left value
                 node.left->accept(*this);
                 Value *left = Builder->CreateICmpNE(lastValue, ConstantInt::get(*context, APInt(1, 0, false)), "lefttmp");
                 // Create block for right value
@@ -188,13 +188,12 @@ namespace visitor
                 PN->addIncoming(right, rightBlock);
                 lastValue = PN;
             }
-                break;
+            break;
             default:
                 LogError("Unknown binary operator");
                 break;
             }
         }
-
 
         virtual void visitNode(Parser::Node &node){};
         virtual void visitNodeNumber(Parser::NodeNumber &node)
@@ -301,9 +300,9 @@ namespace visitor
             case Lexer::TokenType::LOGICAL_NOT:
             {
                 auto constantZero = ConstantInt::get(lastValue->getType(), 0);
-                lastValue = Builder->CreateICmpEQ(lastValue, constantZero , "nottmp");
+                lastValue = Builder->CreateICmpEQ(lastValue, constantZero, "nottmp");
             }
-                break;
+            break;
             case Lexer::TokenType::OPERATOR_SUB:
                 lastValue = Builder->CreateNeg(lastValue, "negtmp");
                 break;
@@ -311,6 +310,72 @@ namespace visitor
                 LogError("Unknown unary operator");
                 break;
             }
+        }
+
+        virtual void visitNodeFunction(Parser::NodeFunction &node)
+        {
+            lastValue = nullptr;
+            std::map<std::string, std::function<llvm::Type *()>> typeMap{
+                {"uint8", [&]() { return llvm::Type::getInt8Ty(*context); }},
+                {"uint16", [&]() { return llvm::Type::getInt16Ty(*context); }},
+                {"uint32", [&]() { return llvm::Type::getInt32Ty(*context); }},
+                {"uint64", [&]() { return llvm::Type::getInt64Ty(*context); }},
+                {"int8", [&]() { return llvm::Type::getInt8Ty(*context); }},
+                {"int16", [&]() { return llvm::Type::getInt16Ty(*context); }},
+                {"int32", [&]() { return llvm::Type::getInt32Ty(*context); }},
+                {"int64", [&]() { return llvm::Type::getInt64Ty(*context); }},
+                {"void", [&]() { return llvm::Type::getVoidTy(*context); }}
+            };
+            std::vector<Type *> args;
+            for (auto &arg : node.arguments)
+            {
+                args.push_back(typeMap[arg.first]());
+            }
+            auto funcType = FunctionType::get(typeMap[node.returnType.value_or("void")](), args, false);
+            auto Function = Function::Create(funcType, Function::ExternalLinkage, node.name, TheModule.get());
+
+
+            // Set names for all arguments.
+            int i = 0;
+            for (auto &arg : Function->args())
+            {
+                arg.setName(node.arguments[i].second);
+                i++;
+            }
+            if (! node.body.has_value())
+                return;
+            // Create a new basic block to start insertion into.
+            BasicBlock *BB = BasicBlock::Create(*context, "entry", Function);
+            Builder->SetInsertPoint(BB);
+
+            // Create allocas for all arguments
+            contextProvider.enterScope();
+            i = 0;
+            for (auto &arg : Function->args())
+            {
+                auto *alloca = Builder->CreateAlloca(arg.getType(), 0, arg.getName());
+                Builder->CreateStore(&arg, alloca);
+                contextProvider.addVariable(arg.getName(), alloca, node.arguments[i].first);
+                i++;
+            }
+            node.body.value()->accept(*this);
+            contextProvider.exitScope();
+        }
+        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node)
+        {
+            auto callee = TheModule->getFunction(node.name);
+            if (callee == nullptr)
+            {
+                LogError("Unknown function referenced");
+                return;
+            }
+            std::vector<Value *> args;
+            for (auto &arg : node.arguments)
+            {
+                arg->accept(*this);
+                args.push_back(lastValue);
+            }
+            lastValue = Builder->CreateCall(callee, args, "calltmp");
         }
     };
 

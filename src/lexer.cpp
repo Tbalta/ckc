@@ -16,10 +16,18 @@ namespace Lexer
         {
             return it->second;
         }
-        return "UNKNOWN";
+        switch (type)
+        {
+        case TokenType::TOKEN_EOF:
+            return "EOF";
+        case TokenType::TYPE:
+            return "TYPE";
+        case TokenType::IDENTIFIER:
+            return "IDENTIFIER";
+        default:
+            return "UNKNOWN";
+        }
     }
-
-
 
     std::ostream &operator<<(std::ostream &os, TokenType const &tok)
     {
@@ -90,6 +98,7 @@ namespace Lexer
     {
         std::string token;
         char c = input.peek();
+        // Parse an identifier
         if (std::isalnum(c) || c == '_')
         {
             while ((std::isalnum(c) || c == '_') && c != EOF)
@@ -98,6 +107,14 @@ namespace Lexer
                 column++;
                 c = input.peek();
             }
+            moveHead();
+            return token;
+        }
+        // Special case for parenthesis
+        if (c == '(' || c == ')')
+        {
+            token += input.get();
+            column++;
             moveHead();
             return token;
         }
@@ -127,9 +144,9 @@ namespace Lexer
         {
             type = stringToTokenMap.at(token);
         }
-        else if (typeToken.find(token) != typeToken.end())
+        else if (LexerContext::getTokenType(token).has_value())
         {
-            type = typeToken.at(token);
+            type = LexerContext::getTokenType(token).value();
         }
         else if (isNumber(token))
         {
@@ -158,6 +175,7 @@ namespace Lexer
         std::unordered_set<TokenType> endMultiBlock{
             TokenType::KEYWORD_ELSE,
             TokenType::KEYWORD_FI,
+            TokenType::KEYWORD_ENDFUNCTION,
             TokenType::TOKEN_EOF};
         return endMultiBlock.find(type) != endMultiBlock.end();
     }
@@ -174,7 +192,7 @@ namespace Lexer
 #define RED_COL "\033[31m"
     void TokenStream::unexpectedToken(Token t, std::optional<TokenType> expected)
     {
-        std::cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token type: " << t.value;
+        std::cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token: " << t.value;
         if (expected.has_value())
         {
             std::cerr << ", expected: " << Lexer::tokenTypeToString(expected.value());
@@ -202,6 +220,48 @@ namespace Lexer
             TokenType::LOGICAL_NOT,
             TokenType::OPERATOR_SUB};
         return unaryOperators.find(type) != unaryOperators.end();
+    }
+
+    // std::vector<std::map<std::string, TokenType>> LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>
+    // {
+    //     std::m
+    // };
+    // Initialize the context stack with the global context with at least one map
+    std::vector<std::map<std::string, TokenType>> LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>{
+        std::map<std::string, TokenType>{
+            {"uint8", TokenType::TYPE},
+            {"uint16", TokenType::TYPE},
+            {"uint32", TokenType::TYPE},
+            {"uint64", TokenType::TYPE},
+            {"int8", TokenType::TYPE},
+            {"int16", TokenType::TYPE},
+            {"int32", TokenType::TYPE},
+            {"int64", TokenType::TYPE}
+        }};
+
+    void LexerContext::pushContext()
+    {
+        LexerContext::contextStack.push_back(std::map<std::string, TokenType>());
+    }
+    void LexerContext::popContext()
+    {
+        LexerContext::contextStack.pop_back();
+    }
+    std::optional<TokenType> LexerContext::getTokenType(std::string token)
+    {
+        for (auto it = LexerContext::contextStack.rbegin(); it != LexerContext::contextStack.rend(); it++)
+        {
+            if (it->find(token) != it->end())
+            {
+                return it->at(token);
+            }
+        }
+        return std::nullopt;
+    }
+
+    void LexerContext::addToken(std::string token, TokenType type)
+    {
+        LexerContext::contextStack.back()[token] = type;
     }
 
 }

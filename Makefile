@@ -50,6 +50,7 @@ test: directories $(TEST_OBJ2) $(TARGET)
 	$(CXX) -o unittest $(TEST_OBJ) $(CXXFLAGS) $(TEST_LIBS) -DTEST
 	./unittest
 	./test/functional/step1.sh ./$(TARGET)
+	./test/functional/step2.sh ./$(TARGET)
 
 .PHONY: CI
 CI:
@@ -57,6 +58,8 @@ CI:
 	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS_CI)
 	./$(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
+	./test/functional/step2.sh ./$(TARGET)
+
 
 
 -include $(DEPS)

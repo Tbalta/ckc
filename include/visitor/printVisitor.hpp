@@ -81,5 +81,36 @@ namespace visitor
             std::cout << "return ";
             node.value->accept(*this);
         }
+
+        virtual void visitNodeFunction (Parser::NodeFunction &node)
+        {
+            std::cout << "function " << node.name << " ";
+            // if (node.modifier.has_value())
+            //     node.modifier.value()->accept(*this);
+            std::cout << "(";
+            for (auto &arg : node.arguments)
+            {
+                std::cout << arg.first << " " << arg.second << ", ";
+            }
+            std::cout << ")";
+            if (node.returnType.has_value())
+                std::cout << " return " << node.returnType.value() << std::endl;
+            if (node.body.has_value())
+                node.body.value()->accept(*this);
+        }
+
+        virtual void visitNodeFunctionCall (Parser::NodeFunctionCall &node)
+        {
+            // std::cout << node.name << "(";
+            // for (auto &arg : node.args)
+            // {
+            //     // arg->accept(*this);
+            //     std::cout << arg << ", ";
+            // }
+            // std::cout << ")";
+        }
+
+
+
     };
 }

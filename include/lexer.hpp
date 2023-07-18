@@ -7,6 +7,7 @@
 #include <optional>
 #include <fstream>
 #include "util.hpp"
+#include "contextProvider.hpp"
 namespace Lexer
 {
 
@@ -30,7 +31,8 @@ namespace Lexer
         OPERATOR_LSHIFT,
         BINARY_RSHIFT,
         OPERATOR_ASSIGN,
-        PARENTHESIS,
+        PARENTHESIS_OPEN,
+        PARENTHESIS_CLOSE,
         KEYWORD_HASHTAG,
         NUMBER,
         IDENTIFIER,
@@ -40,6 +42,9 @@ namespace Lexer
         KEYWORD_FI,
         KEYWORD_ELSE,
         KEYWORD_THEN,
+        KEYWORD_IS,
+        KEYWORD_FUNCTION,
+        KEYWORD_ENDFUNCTION,
         TYPE,
         SEMICOLON,
         TOKEN_EOF,
@@ -47,7 +52,11 @@ namespace Lexer
         LOGICAL_NOT,
         LOGICAL_AND,
         LOGICAL_OR,
-        LOGICAL_XOR
+        LOGICAL_XOR,
+        COMMA,
+        // User defined types
+        FUNCTION_NAME,
+        VARIABLE_NAME
     };
 
     template <typename K, typename V>
@@ -74,10 +83,14 @@ namespace Lexer
         {TokenType::KEYWORD_FI, "fi"},
         {TokenType::KEYWORD_GOTO, "goto"},
         {TokenType::KEYWORD_RETURN, "return"},
+        {TokenType::KEYWORD_FUNCTION, "function"},
+        {TokenType::KEYWORD_ENDFUNCTION, "endfunction"},
 
         // File structure
         {TokenType::TOKEN_EOF, ""},
         {TokenType::SEMICOLON, ";"},
+        {TokenType::COMMA, ","},
+        {TokenType::KEYWORD_IS, "is"},
         // Comparison operators
         {TokenType::OPERATOR_LT, "<"},
         {TokenType::OPERATOR_GT, ">"},
@@ -108,9 +121,9 @@ namespace Lexer
         // Misc
         {TokenType::OPERATOR_DIV, "/"},
         {TokenType::OPERATOR_ASSIGN, ":="},
-        {TokenType::PARENTHESIS, "("},
+        {TokenType::PARENTHESIS_OPEN, "("},
         {TokenType::KEYWORD_HASHTAG, "#"},
-        {TokenType::PARENTHESIS, ")"},
+        {TokenType::PARENTHESIS_CLOSE, ")"},
     };
     const static std::map<std::string, TokenType> stringToTokenMap = reverseMap(tokenToStringMap);
     enum class ModifierType
@@ -178,6 +191,7 @@ namespace Lexer
         std::vector<std::string> lines;
         std::string getNextToken();
         std::string filename = "";
+        Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
 
     public:
         int line = 1;
@@ -201,4 +215,16 @@ namespace Lexer
         VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
         std::vector<Token> toList();
     };
+
+    namespace LexerContext
+    {
+
+        // LexerContext();
+        void pushContext();
+        void popContext();
+        std::optional<TokenType> getTokenType(std::string token);
+        void addToken(std::string token, TokenType type);
+        extern std::vector<std::map<std::string, TokenType>> contextStack;
+    };
+
 }
