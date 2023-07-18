@@ -15,7 +15,7 @@ the expression inside the return statetement should be the value returned by the
 expression: a line that has a value.
 statement: a line that doesn't have a value.
 block: a set of statement.
-### BNF
+## BNF
 ```bnf
 <entry> ::= <block>*
 
@@ -42,3 +42,43 @@ block: a set of statement.
 ```
 #### Note
 `<binary_operator>` is given for information purpose only. The parser will not use this grammar. 
+
+# 2nd Step
+## Functionalities
+2nd step will focus on the interoperability between differents languages.
+* Declaration and functions call.
+* Partial function call.
+* Function overloading.
+* New type system.
+* Function export name the block modifier "export".
+* Function import name the block modifier "import".
+* Type casting.
+
+## Quality of life
+A docker image should be provided in order to simplify the compilation of gkc and the compilation with gkc.
+## Code quality
+Effort with the test suite will be continued.
+Code documentation will be improved.
+
+
+## BNF
+```bnf
+<function_def> ::= "function" <identifier> "(" <function_parameter> ")"  [return <type>] "is" <statement>* "endfunction"
+<partial_function> ::= "partial" <identifier> "(" <function_parameter> ")" is <function_call>
+
+<function_parameter> ::= (<type> <identifier> ("," <type> <identifier>)*)?
+<function_call> ::= <identifier> "(" <expression> ("," <expression>)* ")"
+<cast_expression> ::= <type> "(" <expression> ")"
+
+<expression> ::= <number> | <identifier> | <operation> | "(" <expression> ")" | <function_call> | <cast_expression>
+<block_modifier> ::= "#" ( <named_block> | <export_block> | <import_block> )
+<block> ::= <block_modifier>* (<block_if> | <statement>)
+<named_block> ::= <identifier>
+<export_block> ::= "export" <identifier>
+<import_block> ::= "import" <identifier>
+```
+
+## Remarks
+Function without `return <type>` should be considered as void function.\
+Errors in typing should result in a compilation error.\
+Block modifier syntax is temporary and subject to change.
