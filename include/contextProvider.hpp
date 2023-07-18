@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "llvm/IR/Instruction.h"
+#include <vector>
 // builder
 #include "llvm/IR/IRBuilder.h"
 namespace Context
@@ -16,9 +17,17 @@ namespace Context
     class ContextProvider
     {
     private:
-        std::map<std::string, variable> variables;
+        std::vector<std::map<std::string, variable>> variables;
         std::map<std::string, llvm::BasicBlock *> namedBlocks;
+        ContextProvider() = default;
     public:
+        static ContextProvider& getInstance()
+        {
+            static ContextProvider instance;
+            return instance;
+        }
+        void enterScope();
+        void exitScope();
         void addVariable(std::string name, llvm::AllocaInst *value, std::string type);
         variable getVariable(std::string name);
         void addBasicBlock(std::string name, llvm::BasicBlock *block);
