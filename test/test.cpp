@@ -12,7 +12,14 @@ auto Map(const std::vector<T>& input_array, Func op)
     return result_array;
 }
 
-TEST(LexerTest, ifTest) {
+class LexerTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    Lexer::LexerContext::init();
+  }
+};
+
+TEST_F(LexerTest, ifTest) {
   // Expect two strings not to be equal.
   auto stream = std::stringstream("if cond then fi");
   Lexer::TokenStream ts(stream);
@@ -26,7 +33,7 @@ TEST(LexerTest, ifTest) {
   ASSERT_THAT(Map(tsIfCond.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::KEYWORD_IF, TokenType::NUMBER, TokenType::OPERATOR_EQ, TokenType::NUMBER, TokenType::KEYWORD_THEN, TokenType::KEYWORD_FI));
 }
 
-TEST(LexerTest, variableAssignmentTest) {
+TEST_F(LexerTest, variableAssignmentTest) {
   auto stream = std::stringstream("a := 1");
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER));
@@ -36,15 +43,22 @@ TEST(LexerTest, variableAssignmentTest) {
   ASSERT_THAT(Map(tsExpr.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::OPERATOR_ADD, TokenType::NUMBER));
 }
 
-TEST(LexerTest, whileTest) {
+TEST_F(LexerTest, whileTest) {
   auto stream = std::stringstream("int64 i := 0;");
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
 }
 
-TEST(LexerTest, crlf)
+TEST_F(LexerTest, crlf)
 {
   auto stream = std::stringstream("int64 i := 0;\r\nint64 j := 0;\r\n");
   Lexer::TokenStream ts(stream);
   ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON, TokenType::TYPE, TokenType::IDENTIFIER, TokenType::OPERATOR_ASSIGN, TokenType::NUMBER, TokenType::SEMICOLON));
+}
+
+TEST_F(LexerTest, parseFunction)
+{
+  auto stream = std::stringstream("function main() return int32 is return 0; endfunction");
+  Lexer::TokenStream ts(stream);
+  ASSERT_THAT(Map(ts.toList(), [](Token tok) {return tok.type;}), ElementsAre(TokenType::KEYWORD_FUNCTION, TokenType::IDENTIFIER, TokenType::PARENTHESIS_OPEN, TokenType::PARENTHESIS_CLOSE, TokenType::KEYWORD_RETURN, TokenType::TYPE, TokenType::KEYWORD_IS, TokenType::KEYWORD_RETURN, TokenType::NUMBER, TokenType::SEMICOLON, TokenType::KEYWORD_ENDFUNCTION));
 }

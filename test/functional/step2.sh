@@ -1,3 +1,5 @@
+#!/bin/bash
+
 executablePath=$1
 
 function test

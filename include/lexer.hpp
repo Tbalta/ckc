@@ -222,6 +222,7 @@ namespace Lexer
         // LexerContext();
         void pushContext();
         void popContext();
+        void init();
         std::optional<TokenType> getTokenType(std::string token);
         void addToken(std::string token, TokenType type);
         extern std::vector<std::map<std::string, TokenType>> contextStack;
