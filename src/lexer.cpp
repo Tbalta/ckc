@@ -238,6 +238,21 @@ namespace Lexer
             {"int32", TokenType::TYPE},
             {"int64", TokenType::TYPE}
         }};
+    
+    void LexerContext::init()
+    {
+        LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>{
+            std::map<std::string, TokenType>{
+                {"uint8", TokenType::TYPE},
+                {"uint16", TokenType::TYPE},
+                {"uint32", TokenType::TYPE},
+                {"uint64", TokenType::TYPE},
+                {"int8", TokenType::TYPE},
+                {"int16", TokenType::TYPE},
+                {"int32", TokenType::TYPE},
+                {"int64", TokenType::TYPE}
+            }};
+    }
 
     void LexerContext::pushContext()
     {

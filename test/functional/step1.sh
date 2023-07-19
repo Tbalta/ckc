@@ -17,7 +17,7 @@ function test
     toCompile=$1
     expected=$2
 
-    echo "$toCompile" > "functest.kc"
+    echo "function main() return int32 is $toCompile endfunction" > "functest.kc"
     $executablePath "functest.kc" --silent
     if [ $? -ne 0 ]; then
         echo "Compilation failed: $toCompile"
@@ -43,7 +43,7 @@ function test_stdout
     expected=$3
     expected_return_code=$4
 
-    echo "$toCompile" > "functest.kc"
+    echo "function main() return int32 is $toCompile endfunction" > "functest.kc"
     result=$($executablePath $command 2>/dev/null)
     return_code=$?
     if [ $return_code -ne $expected_return_code ]; then

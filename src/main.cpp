@@ -127,7 +127,16 @@ int main(int argc, char **argv)
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
     while (!ts.isEmpty())
     {
-        std::unique_ptr<Parser::NodeBlock> nodeMain = Parser::parseBlock(ts);
+        std::unique_ptr<Parser::NodeBlock> nodeMain = nullptr;
+        try
+        {
+            nodeMain = Parser::parseBlock(ts);
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << e.what() << std::endl;
+            break;
+        }
         if (nodeMain == nullptr)
             break;
         visitor::PrintVisitor pv;
@@ -141,6 +150,7 @@ int main(int argc, char **argv)
     delete input;
     if (Parser::hasError())
     {
+        std::cerr << "Error parsing file\n";
         return 1;
     }
 

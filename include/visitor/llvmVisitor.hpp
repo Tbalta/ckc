@@ -360,6 +360,12 @@ namespace visitor
             }
             node.body.value()->accept(*this);
             contextProvider.exitScope();
+            if (!node.returnType.has_value())
+            {
+                Builder->CreateRetVoid();
+            }
+            //No code should reach this point.
+            Builder->CreateUnreachable();
         }
         virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node)
         {
