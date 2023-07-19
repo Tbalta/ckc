@@ -31,8 +31,8 @@ block: a set of statement.
 <binary_operator> ::= "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "<<" | ">>"
 <statement> ::= (<variable_declaration> | <assignment> | <goto> | <return>) ";"
 <block> ::= <block_modifier> (<block_if> | <statement>)
-<block_if> ::= "if" <expression> "then" <block> [ "else" <block>] "fi"
 <multi_block> ::= <block>*
+<block_if> ::= "if" <expression> "then" <multi_block> [ "else" <multi_block>] "fi"
 <variable_declaration> ::= <type> <identifier> [ "=" <expression> ]
 <assigment> ::= <identifier> "=" <expression>
 <goto> ::= "goto" <identifier>
@@ -50,8 +50,8 @@ block: a set of statement.
 * Partial function call.
 * Function overloading.
 * New type system.
-* Function export name the block modifier "export".
-* Function import name the block modifier "import".
+* Function export with the block modifier "export".
+* Function import with the block modifier "import".
 * Type casting.
 
 ## Quality of life
@@ -63,7 +63,7 @@ Code documentation will be improved.
 
 ## BNF
 ```bnf
-<function_def> ::= "function" <identifier> "(" <function_parameter> ")"  [return <type>] "is" <statement>* "endfunction"
+<function_def> ::= "function" <identifier> "(" <function_parameter> ")"  [return <type>] "is" <multi_block> "endfunction"
 <partial_function> ::= "partial" <identifier> "(" <function_parameter> ")" is <function_call>
 
 <function_parameter> ::= (<type> <identifier> ("," <type> <identifier>)*)?
