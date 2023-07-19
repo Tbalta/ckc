@@ -28,3 +28,27 @@ TEST_F (ParserTest, parseFunction)
     // check if function is of type NodeFunction
     ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunction&>(*function));
 }
+
+TEST_F (ParserTest, parseFunctionWithParameters)
+{
+    auto stream = std::stringstream("function main(int32 a, int32 b) return int32 is return 0; endfunction");
+    MockTokenStream ts(stream);
+    auto function = Parser::parseBlock(ts);
+    ASSERT_THAT(function, NotNull());
+    ASSERT_TRUE(LexerContext::getTokenType("main").has_value());
+    // check if function is of type NodeFunction
+    ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunction&>(*function));
+}
+
+TEST_F (ParserTest, parseFunctionCall)
+{
+    // Add the symbol "main" to the context
+    LexerContext::addToken("main", TokenType::FUNCTION_NAME);
+
+    auto stream = std::stringstream("main()");
+    MockTokenStream ts(stream);
+    auto functionCall = Parser::parseExpression(ts);
+    ASSERT_THAT(functionCall, NotNull());
+    // check if function is of type NodeFunction
+    ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunctionCall&>(*functionCall));
+}
