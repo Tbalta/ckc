@@ -75,11 +75,10 @@ Code documentation will be improved.
 
 
 <expression> ::= <number> | <identifier> | <operation> | "(" <expression> ")" | <function_call> | <cast_expression>
-<block_modifier> ::= "#" ( <named_block> | <export_block> | <import_block> )
-<block> ::= <block_modifier>* (<block_if> | <statement> | <pragma>)
+<block_modifier> ::= "#" ( <named_block> )
+<block> ::= <block_modifier>* (<block_if> | <statement>)
 <named_block> ::= <identifier>
-<export_block> ::= "export" <identifier>
-<import_block> ::= "import" <identifier>
+
 ```
 
 ## Remarks
