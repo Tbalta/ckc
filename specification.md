@@ -97,31 +97,20 @@ endfunction
 type whatever_add is whatever + my_int; // Is valid now that operator+ is defined.
 ```
 
-### With clause
+### Pragma clause
 ```
 type my_int is int range 0..100;
-with : <identifier> 
-{
-    "Size" => <size>;
-    "Alignment" => <alignment>;
-    ("export_name" | "import_name") => <export_name>;
-    "Packed" => Boolean;
-}
-
-
-with : my_int 
-{
-    "Size" => 4;
-    "Alignment" => 16;
-}
-
+pragma <identifier> 
+    Size is <size>;
+    Alignment is <alignment>;
+    (export_name | import_name) is <export_name>;
+    Packed is Boolean;
 
 my_int x := 50;
-with : x 
-{
-    "Size" => 4; // Warning attribute Size is already inherited from my_int.
-    export_name => "my_int_x";
-}
+pragma x 
+    Size is 4; // Warning attribute Size is already inherited from my_int.
+    export_name is "my_int_x";
+
 ```
 
 ## Contract programming
