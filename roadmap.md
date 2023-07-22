@@ -50,8 +50,8 @@ block: a set of statement.
 * Partial function call.
 * Function overloading.
 * New type system.
-* Function export with the block modifier "export".
-* Function import with the block modifier "import".
+* Function export with the pragma "export_name".
+* Function import with the pragma "import_name".
 * Type casting.
 
 ## Quality of life
@@ -70,9 +70,13 @@ Code documentation will be improved.
 <function_call> ::= <identifier> "(" <expression> ("," <expression>)* ")"
 <cast_expression> ::= <type> "(" <expression> ")"
 
+<pragma_identifier> ::= "export_name" | "import_name"
+<pragma> ::= "pragma" <identifier> <pragma_identifier> "is" (<number> | <identifier>)
+
+
 <expression> ::= <number> | <identifier> | <operation> | "(" <expression> ")" | <function_call> | <cast_expression>
 <block_modifier> ::= "#" ( <named_block> | <export_block> | <import_block> )
-<block> ::= <block_modifier>* (<block_if> | <statement>)
+<block> ::= <block_modifier>* (<block_if> | <statement> | <pragma>)
 <named_block> ::= <identifier>
 <export_block> ::= "export" <identifier>
 <import_block> ::= "import" <identifier>
