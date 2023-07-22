@@ -76,7 +76,7 @@ Code documentation will be improved.
 
 <expression> ::= <number> | <identifier> | <operation> | "(" <expression> ")" | <function_call> | <cast_expression>
 <block_modifier> ::= "#" ( <named_block> )
-<block> ::= <block_modifier>* (<block_if> | <statement>)
+<block> ::= <block_modifier>* (<block_if> | <statement> | <pragma>)
 <named_block> ::= <identifier>
 
 ```
