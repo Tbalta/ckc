@@ -202,6 +202,16 @@ namespace Lexer
         return endMultiBlock.find(type) != endMultiBlock.end();
     }
 
+    bool Token::isEndExpression()
+    {
+        std::unordered_set<TokenType> endExpression{
+            TokenType::TOKEN_EOF,
+            TokenType::SEMICOLON,
+            TokenType::KEYWORD_THEN,
+            TokenType::PARENTHESIS_CLOSE};
+        return endExpression.find(type) != endExpression.end();
+    }
+
     std::string TokenStream::getLine(int line)
     {
         if (line - 1 < int(lines.size()))

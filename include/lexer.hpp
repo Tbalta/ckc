@@ -187,6 +187,7 @@ namespace Lexer
         Token(){};
         bool isEndMultiBlock();
         bool isUnaryOperator();
+        bool isEndExpression();
         int getPrecedence();
         bool operator==(const Token &other) const;
     };

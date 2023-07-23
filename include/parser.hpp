@@ -38,6 +38,23 @@ namespace Parser
         virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
         virtual void visitNodePragma(Parser::NodePragma &node) = 0;
     };
+
+
+    class unexpectedTokenException : public std::exception
+    {
+    public:
+        Lexer::Token token;
+        std::optional<Lexer::TokenType> expected;
+        unexpectedTokenException(Lexer::Token token, std::optional<Lexer::TokenType> expected = std::nullopt) : token(token), expected(expected){};
+        virtual const char *what() const throw()
+        {
+            std::string expectedString = "";
+            if (expected.has_value())
+                expectedString = "Expected " + Lexer::tokenTypeToString(expected.value());
+            return ("Unexpected token " + Lexer::tokenTypeToString(token.type) + " " + token.value + " at " + std::to_string(token.line) + ":" + std::to_string(token.column) + " " + expectedString).c_str();
+        }
+    };
+
     bool hasError();
     using NodeIdentifierIndex = int;
     class NodeIdentifier;
