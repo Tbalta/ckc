@@ -56,6 +56,7 @@ namespace Lexer
         LOGICAL_OR,
         LOGICAL_XOR,
         COMMA,
+        STRING,
         // User defined types
         FUNCTION_NAME,
         VARIABLE_NAME

@@ -88,10 +88,12 @@ namespace visitor
             // if (node.modifier.has_value())
             //     node.modifier.value()->accept(*this);
             std::cout << "(";
-            for (auto &arg : node.arguments)
+            for (ssize_t i = 0; i < ssize_t(node.arguments.size()-1); i++)
             {
-                std::cout << arg.first << " " << arg.second << ", ";
+                std::cout << node.arguments[i].first << " " << node.arguments[i].second << ", ";
             }
+            if (node.arguments.size() > 0)
+                std::cout << (node.arguments.end()-1)->first << " " << (node.arguments.end()-1)->second;
             std::cout << ")";
             if (node.returnType.has_value())
                 std::cout << " return " << node.returnType.value() << std::endl;
@@ -102,24 +104,21 @@ namespace visitor
         virtual void visitNodeFunctionCall (Parser::NodeFunctionCall &node)
         {
             std::cout << node.name << "(";
-            for (auto &arg : node.arguments)
+            for (ssize_t i = 0; i < ssize_t (node.arguments.size()-1); i++)
             {
-                arg.get()->accept(*this);
+                node.arguments[i].get()->accept(*this);
                 std::cout << ", ";
             }
+            if (node.arguments.size() > 0)
+                (node.arguments.end()-1)->get()->accept(*this);
+            
             std::cout << ")";
         }
 
         virtual void visitNodePragma (Parser::NodePragma &node)
         {
             std::cout << "pragma " << Lexer::tokenTypeToString(node.pragmaType) << " ";
-            for (auto &arg : node.value)
-            {
-                std::cout << arg << ", ";
-            }
+            std::cout << node.value << std::endl;
         }
-
-
-
     };
 }

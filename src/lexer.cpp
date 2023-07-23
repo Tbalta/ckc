@@ -98,6 +98,25 @@ namespace Lexer
     {
         std::string token;
         char c = input.peek();
+        // Parse a string
+        if (c == '"')
+        {
+            bool escape = true; // Start with true to escape the first "
+            while (c != EOF && (escape || c != '"'))
+            {
+                token += input.get();
+                column++;
+                c = input.peek();
+                escape = c == '\\';
+            }
+            if (c == '"')
+            {
+                token += input.get();
+                column++;
+            }
+            moveHead();
+            return token;
+        }
         // Parse an identifier
         if (std::isalnum(c) || c == '_')
         {
@@ -140,7 +159,10 @@ namespace Lexer
         int currentColumn = column;
         std::string token = getNextToken();
         Lexer::TokenType type = TokenType::IDENTIFIER;
-        if (stringToTokenMap.find(token) != stringToTokenMap.end())
+        if (token.starts_with('"') && token.ends_with('"'))
+        {
+            type = TokenType::STRING;
+        } else if (stringToTokenMap.find(token) != stringToTokenMap.end())
         {
             type = stringToTokenMap.at(token);
         }
