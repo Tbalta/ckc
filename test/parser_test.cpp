@@ -16,7 +16,7 @@ TEST_F(ParserTest, missingSemicolon) {
     MockTokenStream ts(stream);
     EXPECT_CALL(ts, unexpectedToken(Token(TokenType::TOKEN_EOF, std::string(""), 1, sizeof("int64 i := 0")), std::optional<TokenType>(TokenType::SEMICOLON)))
         .Times(1);
-    Parser::parseBlock(ts);
+    EXPECT_THROW(Parser::parseBlock(ts), std::exception);
 }
 
 TEST_F (ParserTest, parseFunction)

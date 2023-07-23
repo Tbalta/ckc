@@ -36,9 +36,10 @@ namespace Parser
             return true;
         parserError = true;
         ts.unexpectedToken(t, reference);
-        while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
-            continue;
-        return ts.peek().type != Lexer::TokenType::TOKEN_EOF;
+        throw std::runtime_error("Unexpected token");
+        // while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
+        //     continue;
+        // return ts.peek().type != Lexer::TokenType::TOKEN_EOF;
     }
 
     NodeIdentifier parseMultiBlock(Lexer::TokenStream &ts)
@@ -47,7 +48,16 @@ namespace Parser
         Lexer::LexerContext::pushContext();
         while (!ts.peek().isEndMultiBlock())
         {
-            blocks.push_back(parseBlock(ts));
+            try
+            {
+                blocks.push_back(parseBlock(ts));
+            }
+            catch(const std::exception& e)
+            {
+                while (!ts.peek().isEndMultiBlock())
+                    ts.get();
+            }
+            
         }
         Lexer::LexerContext::popContext();
         auto multiBlock = std::make_shared<NodeMultiBlock>(blocks);
@@ -300,6 +310,24 @@ namespace Parser
         return addNode(node);
     }
 
+    NodeIdentifier parseExpression(Lexer::TokenStream &ts)
+    {
+        try
+        {
+            return parsePrecedence(ts);
+        }
+        catch (const std::exception &e)
+        {
+            // Try to recover on expression.
+            while (!ts.peek().isEndExpression() && !ts.peek().isEndMultiBlock())
+                ts.get();
+            // If we reach an endMultiBlock token we need to recover earlier.
+            if (ts.peek().isEndMultiBlock())
+                throw e;
+            return NodeIdentifier(-1);
+        }
+    }
+
     // Parse expressions.
     NodeIdentifier parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
     {
@@ -323,18 +351,18 @@ namespace Parser
         return left;
     }
 
-    NodeIdentifier parseExpression(Lexer::TokenStream &ts)
-    {
-        NodeIdentifier left = parseMul(ts);
-        while (ts.peek().getPrecedence() == 20)
-        {
-            auto op = ts.get().type;
-            NodeIdentifier right = parseMul(ts);
-            auto node = std::make_shared<NodeBinOperator>(left, right, op);
-            left = addNode(node);
-        }
-        return left;
-    }
+    // NodeIdentifier parseExpression(Lexer::TokenStream &ts)
+    // {
+    //     NodeIdentifier left = parseMul(ts);
+    //     while (ts.peek().getPrecedence() == 20)
+    //     {
+    //         auto op = ts.get().type;
+    //         NodeIdentifier right = parseMul(ts);
+    //         auto node = std::make_shared<NodeBinOperator>(left, right, op);
+    //         left = addNode(node);
+    //     }
+    //     return left;
+    // }
 
     NodeIdentifier parseVariableDeclaration(Lexer::TokenStream &ts)
     {
