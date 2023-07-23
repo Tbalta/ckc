@@ -13,11 +13,12 @@ namespace Parser
     class NodeVariableDeclaration;
     class NodeVariableAssignment;
     class NodeBlockModifier;
-    class NodeIdentifier;
+    class NodeText;
     class NodeMultiBlock;
     class NodeReturn;
     class NodeFunction;
     class NodeFunctionCall;
+    class NodePragma;
 
     class Visitor
     {
@@ -30,21 +31,46 @@ namespace Parser
         virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) = 0;
         virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node) = 0;
         virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node) = 0;
-        virtual void visitNodeIdentifier(Parser::NodeIdentifier &node) = 0;
+        virtual void visitNodeText(Parser::NodeText &node) = 0;
         virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
-        virtual void visitNodeUnaryOperator (Parser::NodeUnaryOperator &node) = 0;
+        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) = 0;
         virtual void visitNodeFunction(Parser::NodeFunction &node) = 0;
         virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
+        virtual void visitNodePragma(Parser::NodePragma &node) = 0;
     };
     bool hasError();
+    using NodeIdentifierIndex = int;
+    class NodeIdentifier;
+
+
+    extern std::map<NodeIdentifierIndex, std::shared_ptr<Node>> nodes;
+    class NodeIdentifier
+    {
+        public:
+        NodeIdentifierIndex id;
+        NodeIdentifier(NodeIdentifierIndex id) : id(id){};
+        NodeIdentifier() : id(-1){};
+        template <typename NodeType = Node> std::shared_ptr<NodeType> get()
+        {
+            if (id == -1)
+                return nullptr;
+            return std::dynamic_pointer_cast<NodeType>(nodes[id]);
+        };
+    };
+    // NodeIdentifier addNode(std::shared_ptr<Node> node);    
 
     class Node
     {
     public:
         Lexer::Token token;
         std::string value;
+        std::string symbol_name;
         Node(){};
         Node(std::string value) : value(value){};
+        void setSymbolName(std::string symbol_name)
+        {
+            this->symbol_name = symbol_name;
+        }
         virtual void accept(Visitor &v){};
         virtual ~Node() = default;
     };
@@ -74,25 +100,25 @@ namespace Parser
     class NodeBlock : public Node
     {
     public:
-        std::optional<std::unique_ptr<NodeBlockModifier>> modifier;
+        std::optional<NodeIdentifier> modifier;
         virtual void accept(Visitor &v)
         {
             if (modifier.has_value())
-                modifier.value()->accept(v);
+                modifier.value().get()->accept(v);
         };
     };
 
     class NodeMultiBlock : public NodeBlock
     {
     public:
-        std::vector<std::unique_ptr<NodeBlock>> blocks;
-        NodeMultiBlock(std::vector<std::unique_ptr<NodeBlock>> blocks) : blocks(std::move(blocks)){};
+        std::vector<NodeIdentifier> blocks;
+        NodeMultiBlock(std::vector<NodeIdentifier> blocks) : blocks(blocks){};
         virtual void accept(Visitor &v)
         {
             NodeBlock::accept(v);
             for (auto &block : blocks)
             {
-                block->accept(v);
+                block.get()->accept(v);
             }
         };
     };
@@ -110,10 +136,10 @@ namespace Parser
     class NodeIf : public NodeBlock
     {
     public:
-        std::unique_ptr<NodeExpression> condition;
-        std::unique_ptr<NodeMultiBlock> thenStatement;
-        std::optional<std::unique_ptr<NodeMultiBlock>> elseStatement;
-        NodeIf(std::unique_ptr<NodeExpression> condition, std::unique_ptr<NodeMultiBlock> thenStatement, std::optional<std::unique_ptr<NodeMultiBlock>> elseStatement) : condition(std::move(condition)), thenStatement(std::move(thenStatement)), elseStatement(std::move(elseStatement)){};
+        NodeIdentifier condition;
+        NodeIdentifier thenStatement;
+        std::optional<NodeIdentifier> elseStatement;
+        NodeIf(NodeIdentifier condition, NodeIdentifier thenStatement, std::optional<NodeIdentifier> elseStatement) : condition(condition), thenStatement(thenStatement), elseStatement(elseStatement){};
         void accept(Visitor &v) override
         {
             NodeBlock::accept(v);
@@ -136,8 +162,8 @@ namespace Parser
     class NodeReturn : public NodeStatement
     {
     public:
-        std::unique_ptr<NodeExpression> value;
-        NodeReturn(std::unique_ptr<NodeExpression> value) : value(std::move(value)){};
+        NodeIdentifier value;
+        NodeReturn(NodeIdentifier value) : value(value){};
         void accept(Visitor &v) override
         {
             NodeStatement::accept(v);
@@ -148,15 +174,15 @@ namespace Parser
     class NodeBinOperator : public NodeExpression
     {
     public:
-        std::unique_ptr<NodeExpression> left;
-        std::unique_ptr<NodeExpression> right;
+        NodeIdentifier left;
+        NodeIdentifier right;
         Lexer::TokenType op;
-        NodeBinOperator(std::unique_ptr<NodeExpression> left, std::unique_ptr<NodeExpression> right, Lexer::TokenType op) : left(std::move(left)), right(std::move(right)), op(op){};
+        NodeBinOperator(NodeIdentifier left, NodeIdentifier right, Lexer::TokenType op) : left(left), right(right), op(op){};
         virtual void accept(Visitor &v) override
         {
             v.visitBinOperator(*this);
         };
-        
+
         bool isLazyOperator()
         {
             return op == Lexer::TokenType::LOGICAL_AND || op == Lexer::TokenType::LOGICAL_OR;
@@ -166,9 +192,9 @@ namespace Parser
     class NodeUnaryOperator : public NodeExpression
     {
     public:
-        std::unique_ptr<NodeExpression> right;
+        NodeIdentifier right;
         Lexer::TokenType op;
-        NodeUnaryOperator(std::unique_ptr<NodeExpression> right, Lexer::TokenType op) : right(std::move(right)), op(op){};
+        NodeUnaryOperator(NodeIdentifier right, Lexer::TokenType op) : right(right), op(op){};
         virtual void accept(Visitor &v) override
         {
             v.visitNodeUnaryOperator(*this);
@@ -186,14 +212,14 @@ namespace Parser
         };
     };
 
-    class NodeIdentifier : public NodeExpression
+    class NodeText : public NodeExpression
     {
     public:
         std::string name;
-        NodeIdentifier(std::string name) : name(name){};
+        NodeText(std::string name) : name(name){};
         virtual void accept(Visitor &v) override
         {
-            v.visitNodeIdentifier(*this);
+            v.visitNodeText(*this);
         };
     };
 
@@ -202,8 +228,11 @@ namespace Parser
     public:
         std::string type;
         std::string name;
-        std::optional<std::unique_ptr<NodeExpression>> value;
-        NodeVariableDeclaration(std::string type, std::string name, std::optional<std::unique_ptr<NodeExpression>> value) : type(type), name(name), value(std::move(value)){};
+        std::optional<NodeIdentifier> value;
+        NodeVariableDeclaration(std::string type, std::string name, std::optional<NodeIdentifier> value) : type(type), name(name){
+            if (value.has_value())
+                this->value = std::move(value.value());
+        };
         void accept(Visitor &v) override
         {
             NodeStatement::accept(v);
@@ -215,8 +244,8 @@ namespace Parser
     {
     public:
         std::string name;
-        std::unique_ptr<NodeExpression> value;
-        NodeVariableAssignment(std::string name, std::unique_ptr<NodeExpression> value) : name(name), value(std::move(value)){};
+        NodeIdentifier value;
+        NodeVariableAssignment(std::string name, NodeIdentifier value) : name(name), value(value){};
         void accept(Visitor &v) override
         {
             NodeStatement::accept(v);
@@ -228,8 +257,8 @@ namespace Parser
     {
     public:
         std::string name;
-        std::vector<std::unique_ptr<NodeExpression>> arguments;
-        NodeFunctionCall(std::string name, std::vector<std::unique_ptr<NodeExpression>> arguments) : name(name), arguments(std::move(arguments)){};
+        std::vector<NodeIdentifier> arguments;
+        NodeFunctionCall(std::string name, std::vector<NodeIdentifier> arguments) : name(name), arguments(arguments){};
         void accept(Visitor &v) override
         {
             v.visitNodeFunctionCall(*this);
@@ -238,12 +267,15 @@ namespace Parser
 
     class NodeFunction : public NodeBlock
     {
-        public:
+    public:
         std::string name;
         std::vector<std::pair<std::string, std::string>> arguments;
-        std::optional<std::unique_ptr<NodeMultiBlock>> body;
         std::optional<std::string> returnType;
-        NodeFunction(std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<std::unique_ptr<NodeMultiBlock>> body) : name(name), arguments(arguments), returnType(returnType), body(std::move(body)) {}
+        std::optional<NodeIdentifier> body;
+        NodeFunction(std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body) : name(name), arguments(arguments), returnType(returnType){
+            this->symbol_name = name;
+            this->body = body;
+        }
 
         void accept(Visitor &v) override
         {
@@ -252,11 +284,25 @@ namespace Parser
         };
     };
 
+    class NodePragma : public NodeBlock
+    {
+    public:
+        Lexer::TokenType pragmaType;
+        std::string value;
+        Lexer::Token targetObject;
+        NodePragma(Lexer::TokenType pragmaType, std::string value, Lexer::Token targetObject) : pragmaType(pragmaType), value(value), targetObject(targetObject){};
 
-    std::unique_ptr<NodeStatement> parseStatement(Lexer::TokenStream &ts);
-    std::unique_ptr<NodeExpression> parseExpression(Lexer::TokenStream &ts);
-    std::unique_ptr<NodeBlock> parseBlock(Lexer::TokenStream &ts);
-    std::unique_ptr<NodeVariableDeclaration> parseVariableDeclaration(Lexer::TokenStream &ts);
-    std::unique_ptr<NodeVariableAssignment> parseVariableAssignment(Lexer::TokenStream &ts);
-    std::unique_ptr<NodeExpression> parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex = Lexer::precedenceList.size() - 1);
+        void accept(Visitor &v) override
+        {
+            NodeBlock::accept(v);
+            v.visitNodePragma(*this);
+        };
+    };
+
+    NodeIdentifier parseStatement(Lexer::TokenStream &ts);
+    NodeIdentifier parseExpression(Lexer::TokenStream &ts);
+    NodeIdentifier parseBlock(Lexer::TokenStream &ts);
+    NodeIdentifier parseVariableDeclaration(Lexer::TokenStream &ts);
+    NodeIdentifier parseVariableAssignment(Lexer::TokenStream &ts);
+    NodeIdentifier parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex = Lexer::precedenceList.size() - 1);
 }

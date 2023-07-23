@@ -24,9 +24,9 @@ TEST_F (ParserTest, parseFunction)
     auto stream = std::stringstream("function main() return int32 is return 0; endfunction");
     MockTokenStream ts(stream);
     auto function = Parser::parseBlock(ts);
-    ASSERT_THAT(function, NotNull());
+    ASSERT_THAT(function.get(), NotNull());
     // check if function is of type NodeFunction
-    ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunction&>(*function));
+    ASSERT_NO_THROW(function.get<Parser::NodeFunction>());
 }
 
 TEST_F (ParserTest, parseFunctionWithParameters)
@@ -34,10 +34,22 @@ TEST_F (ParserTest, parseFunctionWithParameters)
     auto stream = std::stringstream("function main(int32 a, int32 b) return int32 is return 0; endfunction");
     MockTokenStream ts(stream);
     auto function = Parser::parseBlock(ts);
-    ASSERT_THAT(function, NotNull());
+    ASSERT_THAT(function.get(), NotNull());
     ASSERT_TRUE(LexerContext::getTokenType("main").has_value());
     // check if function is of type NodeFunction
-    ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunction&>(*function));
+    ASSERT_NO_THROW(function.get<Parser::NodeFunction>());
+}
+
+TEST_F (ParserTest, assertThrowsInGet)
+{
+    LexerContext::addToken("main", TokenType::FUNCTION_NAME);
+
+    auto stream = std::stringstream("main()");
+    MockTokenStream ts(stream);
+    auto functionCall = Parser::parseExpression(ts);
+    ASSERT_THAT(functionCall.get(), NotNull());
+    // check if function is of type NodeFunction
+    ASSERT_THAT(functionCall.get<Parser::NodeText>().get(), IsNull());
 }
 
 TEST_F (ParserTest, parseFunctionCall)
@@ -48,7 +60,7 @@ TEST_F (ParserTest, parseFunctionCall)
     auto stream = std::stringstream("main()");
     MockTokenStream ts(stream);
     auto functionCall = Parser::parseExpression(ts);
-    ASSERT_THAT(functionCall, NotNull());
+    ASSERT_THAT(functionCall.get(), NotNull());
     // check if function is of type NodeFunction
-    ASSERT_NO_THROW(dynamic_cast<Parser::NodeFunctionCall&>(*functionCall));
+    ASSERT_THAT(functionCall.get<Parser::NodeFunctionCall>().get(), NotNull());
 }

@@ -6,6 +6,7 @@
 #include "parser.hpp"
 #include "visitor/printVisitor.hpp"
 #include "visitor/llvmVisitor.hpp"
+#include "visitor/pragmaVisitor.hpp"
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 
     TargetOptions opt;
     auto RM = Optional<llvm::Reloc::Model>();
-    auto TargetMachine = std::unique_ptr<llvm::TargetMachine>(Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM));
+    auto TargetMachine = std::shared_ptr<llvm::TargetMachine>(Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM));
 
     // if (!file.is_open())
     // {
@@ -125,9 +126,11 @@ int main(int argc, char **argv)
 
     // Builder->SetInsertPoint(entry);
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
+    visitor::pragmaVisitor pragmaVisitor;
+    std::vector<Parser::NodeIdentifier> nodes;
     while (!ts.isEmpty())
     {
-        std::unique_ptr<Parser::NodeBlock> nodeMain = nullptr;
+        Parser::NodeIdentifier nodeMain = Parser::NodeIdentifier();
         try
         {
             nodeMain = Parser::parseBlock(ts);
@@ -137,15 +140,20 @@ int main(int argc, char **argv)
             std::cout << e.what() << std::endl;
             break;
         }
-        if (nodeMain == nullptr)
+        if (nodeMain.get() == nullptr)
             break;
         visitor::PrintVisitor pv;
         if (!silent)
         {
-            nodeMain->accept(pv);
+            nodeMain.get()->accept(pv);
             std::cout << std::endl;
         }
-        nodeMain->accept(lv);
+        nodeMain.get()->accept(pragmaVisitor);
+        nodes.push_back(nodeMain);
+    }
+    for (auto &node : nodes)
+    {
+        node.get()->accept(lv);
     }
     delete input;
     if (Parser::hasError())
