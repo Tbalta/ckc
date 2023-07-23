@@ -32,10 +32,27 @@ namespace Context
     void ContextProvider::enterScope()
     {
         variables.push_back(std::map<std::string, variable>());
+        nameTranslation.push_back(std::map<std::string, std::string>());
     }
 
     void ContextProvider::exitScope()
     {
         variables.pop_back();
+        nameTranslation.pop_back();
     }
+
+            void ContextProvider::addNameTranslation(std::string name, std::string translation)
+            {
+                nameTranslation.back()[name] = translation;
+            }
+        std::optional<std::string> ContextProvider::getNameTranslation(std::string name)
+        {
+            for (auto it = nameTranslation.rbegin(); it != nameTranslation.rend(); ++it)
+            {
+                if (it->find(name) != it->end())
+                    return it->at(name);
+            }
+            return std::nullopt;
+        }
+
 }

@@ -44,6 +44,8 @@ namespace Lexer
         KEYWORD_THEN,
         KEYWORD_IS,
         KEYWORD_FUNCTION,
+        KEYWORD_PRAGMA,
+        SYMBOL_NAME,
         KEYWORD_ENDFUNCTION,
         TYPE,
         SEMICOLON,
@@ -91,6 +93,11 @@ namespace Lexer
         {TokenType::SEMICOLON, ";"},
         {TokenType::COMMA, ","},
         {TokenType::KEYWORD_IS, "is"},
+
+        // Pragma
+        {TokenType::KEYWORD_PRAGMA, "pragma"},
+        {TokenType::SYMBOL_NAME, "symbol_name"},
+        
         // Comparison operators
         {TokenType::OPERATOR_LT, "<"},
         {TokenType::OPERATOR_GT, ">"},

@@ -9,15 +9,15 @@ namespace visitor
         void visitNodeIf(Parser::NodeIf &node) override
         {
             if (node.modifier.has_value())
-                node.modifier.value()->accept(*this);
+                node.modifier.value().get()->accept(*this);
             std::cout << "if ";
-            node.condition->accept(*this);
+            node.condition.get()->accept(*this);
             std::cout << " then ";
-            node.thenStatement->accept(*this);
+            node.thenStatement.get()->accept(*this);
             if (node.elseStatement)
             {
                 std::cout << " else ";
-                node.elseStatement.value()->accept(*this);
+                node.elseStatement.value().get()->accept(*this);
             }
             std::cout << " fi";
         }
@@ -28,16 +28,16 @@ namespace visitor
         void visitBinOperator(Parser::NodeBinOperator &node) override
         {
             std::cout << "(";
-            node.left->accept(*this);
+            node.left.get()->accept(*this);
             std::cout << " " << Lexer::tokenTypeToString(node.op) << " ";
-            node.right->accept(*this);
+            node.right.get()->accept(*this);
             std::cout << ")";
         }
 
         void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) override
         {
             std::cout << Lexer::tokenTypeToString(node.op) << " ";
-            node.right->accept(*this);
+            node.right.get()->accept(*this);
         }
 
         void visitNode(Parser::Node &node) override
@@ -51,27 +51,27 @@ namespace visitor
         virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
         {
             if (node.modifier.has_value())
-                node.modifier.value()->accept(*this);
+                node.modifier.value().get()->accept(*this);
             std::cout << node.type << " " << node.name;
             if (node.value)
             {
                 std::cout << " = ";
-                node.value.value()->accept(*this);
+                node.value.value().get()->accept(*this);
             }
         }
 
         virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node)
         {
             if (node.modifier.has_value())
-                node.modifier.value()->accept(*this);
+                node.modifier.value().get()->accept(*this);
             std::cout << node.name << " = ";
-            node.value->accept(*this);
+            node.value.get()->accept(*this);
         }
         virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node)
         {
             std::cout << "named" << " " << node.modifier_value << " ";
         }
-        virtual void visitNodeIdentifier(Parser::NodeIdentifier &node)
+        virtual void visitNodeText(Parser::NodeText &node)
         {
             std::cout << node.name;
         }
@@ -79,7 +79,7 @@ namespace visitor
         virtual void visitNodeReturn(Parser::NodeReturn &node)
         {
             std::cout << "return ";
-            node.value->accept(*this);
+            node.value.get()->accept(*this);
         }
 
         virtual void visitNodeFunction (Parser::NodeFunction &node)
@@ -96,18 +96,27 @@ namespace visitor
             if (node.returnType.has_value())
                 std::cout << " return " << node.returnType.value() << std::endl;
             if (node.body.has_value())
-                node.body.value()->accept(*this);
+                node.body.value().get()->accept(*this);
         }
 
         virtual void visitNodeFunctionCall (Parser::NodeFunctionCall &node)
         {
-            // std::cout << node.name << "(";
-            // for (auto &arg : node.args)
-            // {
-            //     // arg->accept(*this);
-            //     std::cout << arg << ", ";
-            // }
-            // std::cout << ")";
+            std::cout << node.name << "(";
+            for (auto &arg : node.arguments)
+            {
+                arg.get()->accept(*this);
+                std::cout << ", ";
+            }
+            std::cout << ")";
+        }
+
+        virtual void visitNodePragma (Parser::NodePragma &node)
+        {
+            std::cout << "pragma " << Lexer::tokenTypeToString(node.pragmaType) << " ";
+            for (auto &arg : node.value)
+            {
+                std::cout << arg << ", ";
+            }
         }
 
 
