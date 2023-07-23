@@ -197,9 +197,14 @@ namespace Parser
         }
         const Lexer::Token pragmaType = ts.get();
         CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::KEYWORD_IS, ts);
-        const std::string value = ts.get().value;
+        const auto value = ts.get();
+        std::string pragmaValue = value.value;
+        if (value.type == Lexer::TokenType::STRING)
+        {
+            pragmaValue = value.value.substr(1, value.value.size() - 2);
+        }
         CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
-        auto node = std::make_shared<NodePragma>(pragmaType.type, value, targetObject);
+        auto node = std::make_shared<NodePragma>(pragmaType.type,pragmaValue, targetObject);
         return addNode(node);
     }
 
