@@ -13,8 +13,6 @@ namespace Lexer
 
     enum class TokenType
     {
-        KEYWORD,
-        OPERATOR,
         OPERATOR_MUL,
         OPERATOR_DIV,
         OPERATOR_ADD,
@@ -98,7 +96,7 @@ namespace Lexer
         // Pragma
         {TokenType::KEYWORD_PRAGMA, "pragma"},
         {TokenType::SYMBOL_NAME, "symbol_name"},
-        
+
         // Comparison operators
         {TokenType::OPERATOR_LT, "<"},
         {TokenType::OPERATOR_GT, ">"},
@@ -165,7 +163,7 @@ namespace Lexer
         {TokenType::LOGICAL_AND, 50},
         {TokenType::BINARY_OR, 60},
         {TokenType::LOGICAL_OR, 60},
-    };
+        {TokenType::LOGICAL_XOR, 60}};
     static std::vector<int> precedenceList{
         10,
         20,
@@ -188,7 +186,10 @@ namespace Lexer
         bool isEndMultiBlock();
         bool isUnaryOperator();
         bool isEndExpression();
+        bool isBooleanOperator();
+        bool isComparisonOperator();
         int getPrecedence();
+        std::string underline(std::string color);
         bool operator==(const Token &other) const;
     };
 
@@ -222,6 +223,8 @@ namespace Lexer
         bool isEmpty();
         std::string getLine(int line);
         VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
+        void highlightMultiplesTokens(std::vector<std::pair<Token, Token>> tokens);
+
         std::vector<Token> toList();
     };
 

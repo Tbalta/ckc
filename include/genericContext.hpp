@@ -1,3 +1,5 @@
+#pragma once
+
 template <typename Index, typename Element>
 class genericContext
 {

@@ -267,7 +267,12 @@ namespace visitor
 
     void llvmVisitor::visitNodeReturn(Parser::NodeReturn &node)
     {
-        node.value.get()->accept(*this);
+        if (!node.value.has_value())
+        {
+            Builder->CreateRetVoid();
+            return;
+        }
+        node.value.value()->accept(*this);
         Builder->CreateRet(lastValue);
     }
 

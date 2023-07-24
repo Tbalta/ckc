@@ -236,6 +236,78 @@ namespace Lexer
         std::cerr << std::setw(t.column - 1 + 9) << "" << RED_COL << std::setw(t.value.size()) << std::setfill('^') << "" << RESET_COL << std::setfill(' ') << std::endl;
         std::cerr << std::setfill(' ') << std::right;
     }
+
+    std::string Token::underline(std::string color)
+    {
+        return std::string(column - 1, ' ') + color + std::string(value.size(), '^') + RESET_COL;
+    }
+
+    // if the token range is on multiple lines, split the token in multiple tokens
+    // std::vector<std::pair<Token, Token>> TokenStream::splitTokenOnSameLine(std::pair<Token, Token> token)
+    // {
+    //     std::vector<std::pair<Token, Token>> tokens;
+    //     if (token.first.line == token.second.line)
+    //     {
+    //         tokens.push_back(token);
+    //         return tokens;
+    //     }
+    //     for (int i = token.first.line; i <= token.second.line; i++)
+    //     {
+    //         if (i == token.first.line)
+    //         {
+    //             tokens.push_back({token.first, Token(TokenType::TOKEN_EOF, "", i, token.first.column + token.first.value.size())});
+    //         }
+    //         else if (i == token.second.line)
+    //         {
+    //             tokens.push_back({Token(TokenType::TOKEN_EOF, "", token.second.line, token.second.column), token.second});
+    //         }
+    //         else
+    //         {
+    //             tokens.push_back({Token(TokenType::TOKEN_EOF, "", i, 1), Token(TokenType::TOKEN_EOF, "", i, getLine(i).size() + 1)});
+    //         }
+    //     }
+    // }
+
+    std::string getWave(std::pair<Token, Token> token)
+    {
+        if (token.first == token.second)
+            return std::string(token.first.value.size(), '^');
+        return std::string(token.first.value.size() + (token.second.column - token.first.column) + token.second.value.size() - 2, '^');
+    }
+
+    void TokenStream::highlightMultiplesTokens(std::vector<std::pair<Token, Token>> tokens)
+    {
+        // Sort the tokens by line then column
+        std::sort(tokens.begin(), tokens.end(), [](std::pair<Token, Token> a, std::pair<Token, Token> b) {
+            if (a.first.line == b.first.line)
+            {
+                return a.first.column < b.first.column;
+            }
+            return a.first.line < b.first.line;
+        });
+        // Find the first and last line
+        int firstLine = tokens[0].first.line;
+        int lastLine = tokens.back().second.line;
+        std::cerr << filename << ":" << firstLine << ":" << tokens[0].first.column << std::endl;
+        // Print the lines
+        for (int i = firstLine; i <= lastLine; i++)
+        {
+            std::cerr << std::setfill(' ') << std::setw(4) << i << std::left << std::setw(5) << " |" << std::right;
+            std::cerr << getLine(i) << std::endl;
+            int offset = -(int(4 + 5 + sizeof(" |") - 3));
+            while (tokens.size() > 0 && tokens.front().first.line == i)
+            {
+                std::string wave = getWave(tokens.front());
+                std::cerr << std::string(tokens.front().first.column - 1 - offset, ' ') << RED_COL << wave << RESET_COL;
+                offset += wave.size() + tokens.front().first.column - 1 - offset;
+                tokens.erase(tokens.begin());
+            }
+            std::cerr << std::endl;
+
+        }
+    }
+
+
     std::vector<Token> TokenStream::toList()
     {
         std::vector<Token> tokens;
@@ -253,6 +325,28 @@ namespace Lexer
             TokenType::LOGICAL_NOT,
             TokenType::OPERATOR_SUB};
         return unaryOperators.find(type) != unaryOperators.end();
+    }
+
+    bool Token::isBooleanOperator()
+    {
+        std::unordered_set<TokenType> booleanOperators{
+            TokenType::LOGICAL_AND,
+            TokenType::LOGICAL_OR,
+            TokenType::LOGICAL_XOR,
+            TokenType::LOGICAL_NOT};
+        return booleanOperators.find(type) != booleanOperators.end();
+    }
+
+    bool Token::isComparisonOperator()
+    {
+        std::unordered_set<TokenType> comparisonOperators{
+            TokenType::OPERATOR_LT,
+            TokenType::OPERATOR_GT,
+            TokenType::OPERATOR_EQ,
+            TokenType::OPERATOR_LE,
+            TokenType::OPERATOR_GE,
+            TokenType::OPERATOR_NE};
+        return comparisonOperators.find(type) != comparisonOperators.end();
     }
 
     // std::vector<std::map<std::string, TokenType>> LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>

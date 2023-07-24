@@ -14,7 +14,9 @@ namespace Parser
     {
         static NodeIdentifierIndex id = 0;
         nodes[id] = node;
-        return NodeIdentifier{id++};
+        auto identifier = NodeIdentifier{id++};
+        node->thisNode = identifier;
+        return identifier;
     }
 
     bool hasError()
@@ -77,7 +79,7 @@ namespace Parser
             fiToken = ts.get();
         }
         checkToken(fiToken, Lexer::TokenType::KEYWORD_FI, ts);
-        auto node = std::make_shared<NodeIf>(condition, thenStatement, elseStatement);
+        auto node = std::make_shared<NodeIf>(t,fiToken, condition, thenStatement, elseStatement);
         return addNode(node);
     }
 
@@ -85,6 +87,7 @@ namespace Parser
     // ts shall be at the function name.
     NodeIdentifier parseFunction(Lexer::TokenStream &ts)
     {
+        auto tokenFunction = ts.get();
         // Parse the function name.
         CHECK_TOKEN_AND_RETURN(ts.peek(), Lexer::TokenType::IDENTIFIER, ts);
         const std::string name = ts.get().value;
@@ -135,7 +138,7 @@ namespace Parser
         }
 
         // Create the function.
-        auto node = std::make_shared<NodeFunction>(name, parameters, returnType, std::move(body));
+        auto node = std::make_shared<NodeFunction>(tokenFunction, name, parameters, returnType, std::move(body));
         return addNode(node);
     }
 
@@ -145,22 +148,29 @@ namespace Parser
         return addNode(node);
     }
 
-    NodeIdentifier parseReturn(const Lexer::Token &t, Lexer::TokenStream &ts)
+    NodeIdentifier parseReturn(Lexer::TokenStream &ts)
     {
-        auto node = std::make_shared<NodeReturn>(parsePrecedence(ts));
+        auto returnToken = ts.get();
+        if (ts.peek().type == Lexer::TokenType::SEMICOLON)
+        {
+            ts.get();
+            auto node = std::make_shared<NodeReturn>(returnToken, std::nullopt);
+            return addNode(node);
+        }
+        auto node = std::make_shared<NodeReturn>(returnToken, parsePrecedence(ts));
         return addNode(node);
     }
 
     NodeIdentifier parseNumber(const Lexer::Token &t)
     {
         int value = std::stoi(t.value);
-        auto node = std::make_shared<NodeNumber>(value);
+        auto node = std::make_shared<NodeNumber>(value, t);
         return addNode(node);
     }
 
     NodeIdentifier parseIdentifier(const Lexer::Token &t)
     {
-        auto node = std::make_shared<NodeText>(t.value);
+        auto node = std::make_shared<NodeText>(t.value, t);
         return addNode(node);
     }
 
@@ -174,7 +184,7 @@ namespace Parser
             statement = parseGoto(ts.get(), ts);
             break;
         case Lexer::TokenType::KEYWORD_RETURN:
-            statement = parseReturn(ts.get(), ts);
+            statement = parseReturn(ts);
             break;
         case Lexer::TokenType::VARIABLE_NAME:
             statement = parseVariableAssignment(ts);
@@ -200,6 +210,7 @@ namespace Parser
 
     NodeIdentifier parsePragma(Lexer::TokenStream &ts)
     {
+        auto pragmaToken = ts.get();
         auto targetObject = ts.get();
         if (targetObject.type == Lexer::TokenType::IDENTIFIER)
         {
@@ -214,7 +225,7 @@ namespace Parser
             pragmaValue = value.value.substr(1, value.value.size() - 2);
         }
         CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
-        auto node = std::make_shared<NodePragma>(pragmaType.type,pragmaValue, targetObject);
+        auto node = std::make_shared<NodePragma>(pragmaToken, pragmaType.type,pragmaValue, targetObject);
         return addNode(node);
     }
 
@@ -235,11 +246,9 @@ namespace Parser
             block = parseIf(ts.get(), ts);
             break;
         case Lexer::TokenType::KEYWORD_FUNCTION:
-            ts.get();
             block = parseFunction(ts);
             break;
         case Lexer::TokenType::KEYWORD_PRAGMA:
-            ts.get();
             block = parsePragma(ts);
             break;
         default:
@@ -254,7 +263,8 @@ namespace Parser
 
     NodeIdentifier parseFunctionCall(Lexer::TokenStream &ts)
     {
-        const std::string name = ts.get().value;
+        auto functionToken = ts.get();
+        const std::string name = functionToken.value;
         checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
         std::vector<NodeIdentifier> parameters;
         while (ts.peek().type != Lexer::TokenType::PARENTHESIS_CLOSE)
@@ -266,7 +276,7 @@ namespace Parser
                 checkToken(ts.peek(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
         }
         checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
-        auto node = std::make_shared<NodeFunctionCall>(name, std::move(parameters));
+        auto node = std::make_shared<NodeFunctionCall>(functionToken, name, std::move(parameters));
         return addNode(node);
     }
 
@@ -328,14 +338,25 @@ namespace Parser
         }
     }
 
+    NodeIdentifier parseParenthesis(Lexer::TokenStream &ts)
+    {
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        NodeIdentifier expression = parseExpression(ts);
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        return expression;
+    }
+
     // Parse expressions.
     NodeIdentifier parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
     {
         assert(precedenceIndex >= 0 && std::size_t(precedenceIndex) < Lexer::precedenceList.size());
         if (ts.peek().isUnaryOperator())
             return parseUnary(ts);
+        if (ts.peek().type == Lexer::TokenType::PARENTHESIS_OPEN)
+            return parseParenthesis(ts);
         if (precedenceIndex == 0)
             return parseMul(ts);
+        
 
         const int precedence = Lexer::precedenceList[precedenceIndex];
         NodeIdentifier left = parsePrecedence(ts, precedenceIndex - 1);
@@ -366,7 +387,8 @@ namespace Parser
 
     NodeIdentifier parseVariableDeclaration(Lexer::TokenStream &ts)
     {
-        const std::string type = ts.get().value;
+        auto typeToken = ts.get();
+        const std::string type = typeToken.value;
         const std::string identifier = ts.get().value;
         const std::string equal = ts.peek().value;
         std::optional<NodeIdentifier> expression = std::nullopt;
@@ -376,16 +398,17 @@ namespace Parser
             expression = parseExpression(ts);
         }
         Lexer::LexerContext::addToken(identifier, Lexer::TokenType::VARIABLE_NAME);
-        auto node = std::make_shared<NodeVariableDeclaration>(type, identifier, std::move(expression));
+        auto node = std::make_shared<NodeVariableDeclaration>(typeToken, type, identifier, std::move(expression));
         return addNode(node);
     }
 
     NodeIdentifier parseVariableAssignment(Lexer::TokenStream &ts)
     {
-        const std::string identifier = ts.get().value;
+        auto identifierToken = ts.get();
+        const std::string identifier = identifierToken.value;
         checkToken(ts.get(), Lexer::TokenType::OPERATOR_ASSIGN, ts);
         NodeIdentifier expression = parseExpression(ts);
-        auto node = std::make_shared<NodeVariableAssignment>(identifier, std::move(expression));
+        auto node = std::make_shared<NodeVariableAssignment>(identifierToken, identifier, std::move(expression));
         return addNode(node);
     }
 
