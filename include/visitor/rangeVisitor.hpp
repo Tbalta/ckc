@@ -1,14 +1,14 @@
 #pragma once
-#include "../parser.hpp"
-#include <iostream>
-#include <sstream>
+
+#include "parser.hpp"
+
+#include "../genericContext.hpp"
 namespace visitor
 {
-    class PrintVisitor : public Parser::Visitor
-    {
-    private:
-        int currentLine = 0;
-        std::ostream &out;
+
+class rangeVisitor : public Parser::Visitor
+{
+    public:
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
         void visitBinOperator(Parser::NodeBinOperator &node) override;
@@ -19,13 +19,14 @@ namespace visitor
         void visitNodeBlockModifier(Parser::NodeBlockModifier &node) override;
         void visitNodeText(Parser::NodeText &node) override;
         void visitNodeReturn(Parser::NodeReturn &node) override;
-        void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) override;
+        void visitNodeUnaryOperator (Parser::NodeUnaryOperator &node) override;
         void visitNodeFunction(Parser::NodeFunction &node) override;
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
-        void enterNode(Parser::Node &node) override;
-    public:
-        PrintVisitor() : out(std::cout){};
-        PrintVisitor(std::ostream &out) : out(out){};
-    };
+        std::optional<Lexer::Token> firstToken;
+        std::optional<Lexer::Token> lastToken;
+    private:
+        void setMin(Lexer::Token token);
+        void setMax(Lexer::Token token);
+};
 }

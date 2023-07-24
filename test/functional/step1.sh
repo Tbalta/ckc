@@ -94,6 +94,9 @@ test "int32 i := 42; int32 j := 2; return i < j;" 0
 test "int32 i := 42; int32 j := 2; return i <= j;" 0
 test "int32 i := 42; int32 j := 2; return i > j;" 1
 test "int32 i := 42; int32 j := 2; return i >= j;" 1
+# Parenthesis
+test "int32 i := 42; int32 j := 2; return (i + j) * 2;" 88
+test "return 2 * (2 + 2);" 8
 
 # Basic bitwise
 test "return 5 & 6;" 4

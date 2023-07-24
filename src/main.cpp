@@ -7,6 +7,9 @@
 #include "visitor/printVisitor.hpp"
 #include "visitor/llvmVisitor.hpp"
 #include "visitor/pragmaVisitor.hpp"
+#include "visitor/typeVisitor.hpp"
+#include "visitor/rangeVisitor.hpp"
+#include "exception/type_error.hpp"
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
@@ -19,6 +22,8 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <getopt.h>
+
+#include "colors.hpp"
 
 using namespace llvm;
 int main(int argc, char **argv)
@@ -127,6 +132,7 @@ int main(int argc, char **argv)
     // Builder->SetInsertPoint(entry);
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
     visitor::pragmaVisitor pragmaVisitor;
+    visitor::typeVisitor typeVisitor;
     std::vector<Parser::NodeIdentifier> nodes;
     while (!ts.isEmpty())
     {
@@ -149,6 +155,29 @@ int main(int argc, char **argv)
             std::cout << std::endl;
         }
         nodeMain.get()->accept(pragmaVisitor);
+        try
+        {
+            nodeMain->accept(typeVisitor);
+        }
+        catch (const type_error &e)
+        {
+            std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
+            // ts.highlightMultiplesTokens(std::vector<Lexer::Token>{e.token});
+        }
+        catch (different_type_error &e)
+        {
+            std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
+            std::vector<std::pair<Lexer::Token, Lexer::Token>> tokens;
+            visitor::rangeVisitor rv;
+            e.nodeA->accept(rv);
+            tokens.push_back({rv.firstToken.value(), rv.lastToken.value()});
+            rv = visitor::rangeVisitor();
+            e.nodeB->accept(rv);
+            tokens.push_back({rv.firstToken.value(), rv.lastToken.value()});
+            ts.highlightMultiplesTokens(tokens);
+            // e.nodeA->accept(pv);
+            // e.nodeA->accept(pv);
+        }
         nodes.push_back(nodeMain);
     }
     for (auto &node : nodes)

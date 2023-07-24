@@ -2,6 +2,7 @@
 #include "lexer.hpp"
 #include <optional>
 #include <memory>
+#include <unordered_set>
 namespace Parser
 {
     class Node;
@@ -37,8 +38,8 @@ namespace Parser
         virtual void visitNodeFunction(Parser::NodeFunction &node) = 0;
         virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
         virtual void visitNodePragma(Parser::NodePragma &node) = 0;
+        virtual void enterNode(Parser::Node &node){};
     };
-
 
     class unexpectedTokenException : public std::exception
     {
@@ -59,45 +60,58 @@ namespace Parser
     using NodeIdentifierIndex = int;
     class NodeIdentifier;
 
-
     extern std::map<NodeIdentifierIndex, std::shared_ptr<Node>> nodes;
     class NodeIdentifier
     {
-        public:
+    public:
         NodeIdentifierIndex id;
         NodeIdentifier(NodeIdentifierIndex id) : id(id){};
         NodeIdentifier() : id(-1){};
-        template <typename NodeType = Node> std::shared_ptr<NodeType> get()
+        template <typename NodeType = Node>
+        std::shared_ptr<NodeType> get()
         {
             if (id == -1)
                 return nullptr;
             return std::dynamic_pointer_cast<NodeType>(nodes[id]);
         };
+        std::shared_ptr<Node> operator->()
+        {
+            return get();
+        }
     };
-    // NodeIdentifier addNode(std::shared_ptr<Node> node);    
+    // NodeIdentifier addNode(std::shared_ptr<Node> node);
 
     class Node
     {
     public:
-        Lexer::Token token;
-        std::string value;
         std::string symbol_name;
-        Node(){};
-        Node(std::string value) : value(value){};
+        std::optional<Lexer::Token> token;
+        NodeIdentifier thisNode;
+        Node() : token(std::nullopt) {}
+        Node(Lexer::Token token) : token(token){};
         void setSymbolName(std::string symbol_name)
         {
             this->symbol_name = symbol_name;
         }
-        virtual void accept(Visitor &v){};
+        virtual void accept(Visitor &v){
+            // v.enterNode(*this);
+        };
+        virtual void enter(Visitor &v)
+        {
+            v.enterNode(*this);
+        };
         virtual ~Node() = default;
     };
 
     class NodeExpression : public Node
     {
     public:
+        std::string type;
         NodeExpression(){};
+        NodeExpression(Lexer::Token token) : Node(token){};
         virtual void accept(Visitor &v) override
         {
+            Node::enter(v);
             v.visitNode(*this);
         };
     };
@@ -110,6 +124,7 @@ namespace Parser
         NodeBlockModifier(Lexer::ModifierType modifier_type, std::string modifier_value) : modifier_type(modifier_type), modifier_value(modifier_value){};
         virtual void accept(Visitor &v)
         {
+            Node::enter(v);
             v.visitNodeBlockModifier(*this);
         };
     };
@@ -117,9 +132,12 @@ namespace Parser
     class NodeBlock : public Node
     {
     public:
+        NodeBlock(){};
+        NodeBlock(Lexer::Token token) : Node(token){};
         std::optional<NodeIdentifier> modifier;
         virtual void accept(Visitor &v)
         {
+            Node::enter(v);
             if (modifier.has_value())
                 modifier.value().get()->accept(v);
         };
@@ -144,6 +162,8 @@ namespace Parser
     {
     public:
         virtual ~NodeStatement() = default;
+        NodeStatement(){};
+        NodeStatement(Lexer::Token token) : NodeBlock(token){};
         virtual void accept(Visitor &v)
         {
             NodeBlock::accept(v);
@@ -155,8 +175,10 @@ namespace Parser
     public:
         NodeIdentifier condition;
         NodeIdentifier thenStatement;
+        Lexer::Token fiToken;
         std::optional<NodeIdentifier> elseStatement;
-        NodeIf(NodeIdentifier condition, NodeIdentifier thenStatement, std::optional<NodeIdentifier> elseStatement) : condition(condition), thenStatement(thenStatement), elseStatement(elseStatement){};
+        NodeIf(Lexer::Token token, Lexer::Token fiToken, NodeIdentifier condition, NodeIdentifier thenStatement, std::optional<NodeIdentifier> elseStatement)
+            : NodeBlock(token), condition(condition), thenStatement(thenStatement), elseStatement(elseStatement), fiToken(fiToken){};
         void accept(Visitor &v) override
         {
             NodeBlock::accept(v);
@@ -179,8 +201,9 @@ namespace Parser
     class NodeReturn : public NodeStatement
     {
     public:
-        NodeIdentifier value;
-        NodeReturn(NodeIdentifier value) : value(value){};
+        std::optional<NodeIdentifier> value;
+        NodeReturn(Lexer::Token token, std::optional<NodeIdentifier> value) : NodeStatement(token), value(value){};
+        NodeReturn() = default;
         void accept(Visitor &v) override
         {
             NodeStatement::accept(v);
@@ -197,12 +220,35 @@ namespace Parser
         NodeBinOperator(NodeIdentifier left, NodeIdentifier right, Lexer::TokenType op) : left(left), right(right), op(op){};
         virtual void accept(Visitor &v) override
         {
+            NodeExpression::accept(v);
             v.visitBinOperator(*this);
         };
 
         bool isLazyOperator()
         {
             return op == Lexer::TokenType::LOGICAL_AND || op == Lexer::TokenType::LOGICAL_OR;
+        }
+
+        bool isBooleanOperator()
+        {
+            std::unordered_set<Lexer::TokenType> booleanOperators{
+                Lexer::TokenType::LOGICAL_AND,
+                Lexer::TokenType::LOGICAL_OR,
+                Lexer::TokenType::LOGICAL_XOR,
+                Lexer::TokenType::LOGICAL_NOT};
+            return booleanOperators.find(op) != booleanOperators.end();
+        }
+
+        bool isComparisonOperator()
+        {
+            std::unordered_set<Lexer::TokenType> comparisonOperators{
+                Lexer::TokenType::OPERATOR_LT,
+                Lexer::TokenType::OPERATOR_GT,
+                Lexer::TokenType::OPERATOR_EQ,
+                Lexer::TokenType::OPERATOR_LE,
+                Lexer::TokenType::OPERATOR_GE,
+                Lexer::TokenType::OPERATOR_NE};
+            return comparisonOperators.find(op) != comparisonOperators.end();
         }
     };
 
@@ -214,6 +260,7 @@ namespace Parser
         NodeUnaryOperator(NodeIdentifier right, Lexer::TokenType op) : right(right), op(op){};
         virtual void accept(Visitor &v) override
         {
+            NodeExpression::accept(v);
             v.visitNodeUnaryOperator(*this);
         };
     };
@@ -222,9 +269,10 @@ namespace Parser
     {
     public:
         int value;
-        NodeNumber(int value) : value(value){};
+        NodeNumber(int value, Lexer::Token token) : NodeExpression(token), value(value) {}
         virtual void accept(Visitor &v) override
         {
+            NodeExpression::accept(v);
             v.visitNodeNumber(*this);
         };
     };
@@ -233,7 +281,7 @@ namespace Parser
     {
     public:
         std::string name;
-        NodeText(std::string name) : name(name){};
+        NodeText(std::string name, Lexer::Token token) : NodeExpression(token), name(name){};
         virtual void accept(Visitor &v) override
         {
             v.visitNodeText(*this);
@@ -246,7 +294,8 @@ namespace Parser
         std::string type;
         std::string name;
         std::optional<NodeIdentifier> value;
-        NodeVariableDeclaration(std::string type, std::string name, std::optional<NodeIdentifier> value) : type(type), name(name){
+        NodeVariableDeclaration(Lexer::Token token, std::string type, std::string name, std::optional<NodeIdentifier> value) : NodeStatement(token), type(type), name(name)
+        {
             if (value.has_value())
                 this->value = std::move(value.value());
         };
@@ -262,7 +311,7 @@ namespace Parser
     public:
         std::string name;
         NodeIdentifier value;
-        NodeVariableAssignment(std::string name, NodeIdentifier value) : name(name), value(value){};
+        NodeVariableAssignment(Lexer::Token token, std::string name, NodeIdentifier value) : NodeStatement(token), name(name), value(value){};
         void accept(Visitor &v) override
         {
             NodeStatement::accept(v);
@@ -275,7 +324,7 @@ namespace Parser
     public:
         std::string name;
         std::vector<NodeIdentifier> arguments;
-        NodeFunctionCall(std::string name, std::vector<NodeIdentifier> arguments) : name(name), arguments(arguments){};
+        NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments) : NodeExpression(token), name(name), arguments(arguments){};
         void accept(Visitor &v) override
         {
             v.visitNodeFunctionCall(*this);
@@ -289,7 +338,8 @@ namespace Parser
         std::vector<std::pair<std::string, std::string>> arguments;
         std::optional<std::string> returnType;
         std::optional<NodeIdentifier> body;
-        NodeFunction(std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body) : name(name), arguments(arguments), returnType(returnType){
+        NodeFunction(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body) : NodeBlock(token), name(name), arguments(arguments), returnType(returnType)
+        {
             this->symbol_name = name;
             this->body = body;
         }
@@ -307,7 +357,7 @@ namespace Parser
         Lexer::TokenType pragmaType;
         std::string value;
         Lexer::Token targetObject;
-        NodePragma(Lexer::TokenType pragmaType, std::string value, Lexer::Token targetObject) : pragmaType(pragmaType), value(value), targetObject(targetObject){};
+        NodePragma(Lexer::Token token, Lexer::TokenType pragmaType, std::string value, Lexer::Token targetObject) : NodeBlock(token), pragmaType(pragmaType), value(value), targetObject(targetObject){};
 
         void accept(Visitor &v) override
         {
