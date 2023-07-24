@@ -103,13 +103,13 @@ type my_int is int range 0..100;
 pragma <identifier> 
     Size is <size>;
     Alignment is <alignment>;
-    (export_name | import_name) is <export_name>;
+    symbol_name is symbol_name;
     Packed is Boolean;
 
 my_int x := 50;
 pragma x 
     Size is 4; // Warning attribute Size is already inherited from my_int.
-    export_name is "my_int_x";
+    symbol_name is "my_int_x";
 
 ```
 

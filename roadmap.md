@@ -70,7 +70,7 @@ Code documentation will be improved.
 <function_call> ::= <identifier> "(" <expression> ("," <expression>)* ")"
 <cast_expression> ::= <type> "(" <expression> ")"
 
-<pragma_identifier> ::= "export_name" | "import_name"
+<pragma_identifier> ::= "symbol_name"
 <pragma> ::= "pragma" <identifier> <pragma_identifier> "is" (<number> | <identifier>)
 
 
