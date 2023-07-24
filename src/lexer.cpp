@@ -162,7 +162,8 @@ namespace Lexer
         if (token.starts_with('"') && token.ends_with('"'))
         {
             type = TokenType::STRING;
-        } else if (stringToTokenMap.find(token) != stringToTokenMap.end())
+        }
+        else if (stringToTokenMap.find(token) != stringToTokenMap.end())
         {
             type = stringToTokenMap.at(token);
         }
@@ -268,9 +269,8 @@ namespace Lexer
             {"int8", TokenType::TYPE},
             {"int16", TokenType::TYPE},
             {"int32", TokenType::TYPE},
-            {"int64", TokenType::TYPE}
-        }};
-    
+            {"int64", TokenType::TYPE}}};
+
     void LexerContext::init()
     {
         LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>{
@@ -282,8 +282,7 @@ namespace Lexer
                 {"int8", TokenType::TYPE},
                 {"int16", TokenType::TYPE},
                 {"int32", TokenType::TYPE},
-                {"int64", TokenType::TYPE}
-            }};
+                {"int64", TokenType::TYPE}}};
     }
 
     void LexerContext::pushContext()

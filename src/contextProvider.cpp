@@ -41,18 +41,18 @@ namespace Context
         nameTranslation.pop_back();
     }
 
-            void ContextProvider::addNameTranslation(std::string name, std::string translation)
-            {
-                nameTranslation.back()[name] = translation;
-            }
-        std::optional<std::string> ContextProvider::getNameTranslation(std::string name)
+    void ContextProvider::addNameTranslation(std::string name, std::string translation)
+    {
+        nameTranslation.back()[name] = translation;
+    }
+    std::optional<std::string> ContextProvider::getNameTranslation(std::string name)
+    {
+        for (auto it = nameTranslation.rbegin(); it != nameTranslation.rend(); ++it)
         {
-            for (auto it = nameTranslation.rbegin(); it != nameTranslation.rend(); ++it)
-            {
-                if (it->find(name) != it->end())
-                    return it->at(name);
-            }
-            return std::nullopt;
+            if (it->find(name) != it->end())
+                return it->at(name);
         }
+        return std::nullopt;
+    }
 
 }
