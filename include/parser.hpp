@@ -372,4 +372,6 @@ namespace Parser
     NodeIdentifier parseVariableDeclaration(Lexer::TokenStream &ts);
     NodeIdentifier parseVariableAssignment(Lexer::TokenStream &ts);
     NodeIdentifier parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex = Lexer::precedenceList.size() - 1);
+    NodeIdentifier parseMultiBlock(Lexer::TokenStream &ts);
+
 }
