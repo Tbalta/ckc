@@ -3,7 +3,7 @@
 using namespace llvm;
 namespace visitor
 {
-    
+
     void LogError(const char *Str)
     {
         fprintf(stderr, "Error: %s\n", Str);
@@ -198,7 +198,9 @@ namespace visitor
             {"int64", [&]()
              { return ConstantInt::get(*context, APInt(64, node.value, true)); }},
             {"", [&]()
-             { return ConstantInt::get(*context, APInt(32, node.value, false)); }}};
+             { return ConstantInt::get(*context, APInt(32, node.value, false)); }},
+            {"bool", [&]()
+             { return ConstantInt::get(*context, APInt(1, node.value, false)); }}};
         lastValue = typeMap[currentType]();
     };
     void llvmVisitor::visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
@@ -212,7 +214,8 @@ namespace visitor
             {"int8", Type::getInt8Ty(*context)},
             {"int16", Type::getInt16Ty(*context)},
             {"int32", Type::getInt32Ty(*context)},
-            {"int64", Type::getInt64Ty(*context)}};
+            {"int64", Type::getInt64Ty(*context)},
+            {"bool", Type::getInt1Ty(*context)}};
         //
         // auto *block = Builder->GetInsertBlock();
         auto *alloca = Builder->CreateAlloca(typeMap[node.type], 0, node.name);
@@ -320,7 +323,9 @@ namespace visitor
             {"int64", [&]()
              { return llvm::Type::getInt64Ty(*context); }},
             {"void", [&]()
-             { return llvm::Type::getVoidTy(*context); }}};
+             { return llvm::Type::getVoidTy(*context); }},
+            {"bool", [&]()
+             { return llvm::Type::getInt1Ty(*context); }}};
         std::vector<Type *> args;
         for (auto &arg : node.arguments)
         {

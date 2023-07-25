@@ -257,7 +257,7 @@ namespace Parser
     public:
         NodeIdentifier right;
         Lexer::TokenType op;
-        NodeUnaryOperator(NodeIdentifier right, Lexer::TokenType op) : right(right), op(op){};
+        NodeUnaryOperator(Lexer::Token token, NodeIdentifier right, Lexer::TokenType op) : NodeExpression(token), right(right), op(op){};
         virtual void accept(Visitor &v) override
         {
             NodeExpression::accept(v);

@@ -16,8 +16,9 @@ function test
 {
     toCompile=$1
     expected=$2
+    type=$3
 
-    echo "function main() return int32 is $toCompile endfunction" > "functest.kc"
+    echo "function main() return $type is $toCompile endfunction" > "functest.kc"
     $executablePath "functest.kc" --silent
     if [ $? -ne 0 ]; then
         echo "Compilation failed: $toCompile"
@@ -77,55 +78,55 @@ function test_stderr
 }
 
 # Basic tests
-test "return 42;" 42
-test "int32 i := 42; return i;" 42
+test "return 42;" 42 "int32"
+test "int32 i := 42; return i;" 42 "int32"
 
 # Basic arithmetic
-test "int32 i := 42; int32 j := 2; return i + j;" 44
-test "int32 i := 42; int32 j := 2; return i - j;" 40
-test "int32 i := 42; int32 j := 2; return i * j;" 84
-test "int32 i := 42; int32 j := 2; return i / j;" 21
-test "int32 i := 42; int32 j := 2; return i % j;" 0
+test "int32 i := 42; int32 j := 2; return i + j;" 44 "int32"
+test "int32 i := 42; int32 j := 2; return i - j;" 40 "int32"
+test "int32 i := 42; int32 j := 2; return i * j;" 84 "int32"
+test "int32 i := 42; int32 j := 2; return i / j;" 21 "int32"
+test "int32 i := 42; int32 j := 2; return i % j;" 0 "int32"
 
 # Basic comparisons
-test "int32 i := 42; int32 j := 2; return i = j;" 0
-test "int32 i := 42; int32 j := 2; return i != j;" 1
-test "int32 i := 42; int32 j := 2; return i < j;" 0
-test "int32 i := 42; int32 j := 2; return i <= j;" 0
-test "int32 i := 42; int32 j := 2; return i > j;" 1
-test "int32 i := 42; int32 j := 2; return i >= j;" 1
+test "int32 i := 42; int32 j := 2; return i = j;" 0 "bool"
+test "int32 i := 42; int32 j := 2; return i != j;" 1 "bool"
+test "int32 i := 42; int32 j := 2; return i < j;" 0 "bool"
+test "int32 i := 42; int32 j := 2; return i <= j;" 0 "bool"
+test "int32 i := 42; int32 j := 2; return i > j;" 1 "bool"
+test "int32 i := 42; int32 j := 2; return i >= j;" 1 "bool"
 # Parenthesis
-test "int32 i := 42; int32 j := 2; return (i + j) * 2;" 88
-test "return 2 * (2 + 2);" 8
+test "int32 i := 42; int32 j := 2; return (i + j) * 2;" 88 "int32"
+test "return 2 * (2 + 2);" 8 "int32"
 
 # Basic bitwise
-test "return 5 & 6;" 4
-test "return 5 | 6;" 7
-test "return ~0;" 255
+test "return 5 & 6;" 4 "int32"
+test "return 5 | 6;" 7 "int32"
+test "return ~0;" 255 "int32"
 
-test "int32 i := 42; int32 j := 2; return i << j;" 168
-test "int32 i := 42; int32 j := 2; return i >> j;" 10
+test "int32 i := 42; int32 j := 2; return i << j;" 168 "int32"
+test "int32 i := 42; int32 j := 2; return i >> j;" 10 "int32"
 
 # Basic logical
-test "return 0 and 0;" 0
-test "return 0 and 1;" 0
-test "return 1 and 0;" 0
-test "return 1 and 1;" 1
+test "return 0 and 0;" 0 "bool"
+test "return 0 and 1;" 0 "bool"
+test "return 1 and 0;" 0 "bool"
+test "return 1 and 1;" 1 "bool"
 
-test "return 0 or 0;" 0
-test "return 0 or 1;" 1
-test "return 1 or 0;" 1
-test "return 1 or 1;" 1
+test "return 0 or 0;" 0 "bool"
+test "return 0 or 1;" 1 "bool"
+test "return 1 or 0;" 1 "bool"
+test "return 1 or 1;" 1 "bool"
 
-test "return not 0;" 1
-test "return not 1;" 0
+test "return not 0;" 1 "bool"
+test "return not 1;" 0 "bool"
 
 
 # If tests
-test "if 1 then return 42; else return 0; fi" 42
+test "if 1 then return 42; else return 0; fi" 42 "int32"
 
 # Advanced tests
-test "int32 i := 0; int32 res := 1; int32 x := 5; #myif if i < x then res := res * 2; i := i + 1; goto myif; else return res; fi" 32
+test "int32 i := 0; int32 res := 1; int32 x := 5; #myif if i < x then res := res * 2; i := i + 1; goto myif; else return res; fi" 32 "int32"
 test 'uint32 acc := 0;
 uint32 max := 10;
 uint32 target := max;
@@ -138,11 +139,11 @@ if target > 0 then
 fi
 
 return acc;
-' 55
+' 55 "uint32"
 
 # Test unary operators
-test "int32 i := 42; return not i;" 0
-test "return -42;" 214
+test "bool i := 1; return not i;" 0 "bool"
+test "return -42;" 214 "int32"
 
 
 # Wrong option
