@@ -35,7 +35,7 @@ namespace visitor
     {
         std::string leftType = node.left.get<Parser::NodeExpression>()->type;
         std::string rightType = node.right.get<Parser::NodeExpression>()->type;
-        if (leftType != "bool" || rightType != "bool")
+        if (!resolve_collision(leftType, "bool", "bool").has_value() || !resolve_collision(rightType, "bool", "bool").has_value())
             throw different_type_error(node.left, node.right);
         node.type = "bool";
         lastType = "bool";
@@ -203,7 +203,11 @@ namespace visitor
                 }
             }
             if (found)
+            {
+                lastType = function.returnType.value_or("void");
+                node.type = lastType;
                 return;
+            }
         }
         throw type_error("function", "no matching function call", node.token.value());
     }

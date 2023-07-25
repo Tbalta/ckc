@@ -157,7 +157,7 @@ namespace Parser
             auto node = std::make_shared<NodeReturn>(returnToken, std::nullopt);
             return addNode(node);
         }
-        auto node = std::make_shared<NodeReturn>(returnToken, parsePrecedence(ts));
+        auto node = std::make_shared<NodeReturn>(returnToken, parseExpression(ts));
         return addNode(node);
     }
 
@@ -294,29 +294,30 @@ namespace Parser
         return parseIdentifier(ts.get());
     }
 
-    NodeIdentifier parseMul(Lexer::TokenStream &ts)
-    {
-        Lexer::Token t = ts.peek();
-        // mul -> term mul'
-        NodeIdentifier term = parseTerm(ts);
-        // while t is a * or / parseMul
-        t = ts.peek();
-        while (t.getPrecedence() == 10)
-        {
-            auto op = ts.get().type;
-            NodeIdentifier right = parseTerm(ts);
-            auto node = std::make_shared<NodeBinOperator>(std::move(term), std::move(right), op);
-            term = addNode(node);
-            t = ts.peek();
-        }
-        return term;
-    }
+    // NodeIdentifier parseMul(Lexer::TokenStream &ts)
+    // {
+    //     Lexer::Token t = ts.peek();
+    //     // mul -> term mul'
+    //     NodeIdentifier term = parseTerm(ts);
+    //     // while t is a * or / parseMul
+    //     t = ts.peek();
+    //     while (t.getPrecedence() == 10)
+    //     {
+    //         auto op = ts.get().type;
+    //         NodeIdentifier right = parseTerm(ts);
+    //         auto node = std::make_shared<NodeBinOperator>(std::move(term), std::move(right), op);
+    //         term = addNode(node);
+    //         t = ts.peek();
+    //     }
+    //     return term;
+    // }
 
     NodeIdentifier parseUnary(Lexer::TokenStream &ts)
     {
-        auto op = ts.get().type;
+        auto token = ts.get();
+        auto op = token.type;
         NodeIdentifier right = parsePrecedence(ts);
-        auto node = std::make_shared<NodeUnaryOperator>(right, op);
+        auto node = std::make_shared<NodeUnaryOperator>(token, right, op);
         return addNode(node);
     }
 
@@ -350,21 +351,26 @@ namespace Parser
     NodeIdentifier parsePrecedence(Lexer::TokenStream &ts, int precedenceIndex)
     {
         assert(precedenceIndex >= 0 && std::size_t(precedenceIndex) < Lexer::precedenceList.size());
+        const int precedence = Lexer::precedenceList[precedenceIndex];
+
         if (ts.peek().isUnaryOperator())
             return parseUnary(ts);
-        if (ts.peek().type == Lexer::TokenType::PARENTHESIS_OPEN)
-            return parseParenthesis(ts);
-        if (precedenceIndex == 0)
-            return parseMul(ts);
-        
 
-        const int precedence = Lexer::precedenceList[precedenceIndex];
-        NodeIdentifier left = parsePrecedence(ts, precedenceIndex - 1);
+        NodeIdentifier left;
+        if (ts.peek().type == Lexer::TokenType::PARENTHESIS_OPEN && precedenceIndex == 0)
+        {
+            left = parseParenthesis(ts);
+        } else if (precedenceIndex > 0) {
+            left = parsePrecedence(ts, precedenceIndex - 1);
+        } else
+        {
+            left = parseTerm(ts);
+        }
         Lexer::Token t = ts.peek();
         while (t.getPrecedence() == precedence)
         {
             auto op = ts.get().type;
-            NodeIdentifier right = parsePrecedence(ts, precedenceIndex - 1);
+            NodeIdentifier right = parsePrecedence(ts, precedenceIndex > 0 ? precedenceIndex - 1 : 0);
             auto node = std::make_shared<NodeBinOperator>(std::move(left), std::move(right), op);
             left = addNode(node);
             t = ts.peek();

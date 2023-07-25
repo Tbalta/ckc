@@ -134,6 +134,7 @@ int main(int argc, char **argv)
     visitor::pragmaVisitor pragmaVisitor;
     visitor::typeVisitor typeVisitor;
     std::vector<Parser::NodeIdentifier> nodes;
+    bool error = false;
     while (!ts.isEmpty())
     {
         Parser::NodeIdentifier nodeMain = Parser::NodeIdentifier();
@@ -161,11 +162,13 @@ int main(int argc, char **argv)
         }
         catch (const type_error &e)
         {
+            error = true;
             std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
-            // ts.highlightMultiplesTokens(std::vector<Lexer::Token>{e.token});
+            ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{e.token, e.token}});
         }
         catch (different_type_error &e)
         {
+            error = true;
             std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
             std::vector<std::pair<Lexer::Token, Lexer::Token>> tokens;
             visitor::rangeVisitor rv;
@@ -178,17 +181,20 @@ int main(int argc, char **argv)
             // e.nodeA->accept(pv);
             // e.nodeA->accept(pv);
         }
+        
         nodes.push_back(nodeMain);
-    }
-    for (auto &node : nodes)
-    {
-        node.get()->accept(lv);
     }
     delete input;
     if (Parser::hasError())
     {
         std::cerr << "Error parsing file\n";
         return 1;
+    }
+    if (error)
+        return 1;
+    for (auto &node : nodes)
+    {
+        node.get()->accept(lv);
     }
 
     // Builder->CreateUnreachable();

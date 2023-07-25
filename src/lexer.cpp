@@ -43,6 +43,7 @@ namespace Lexer
         {"int16", TokenType::TYPE},
         {"int32", TokenType::TYPE},
         {"int64", TokenType::TYPE},
+        {"bool", TokenType::TYPE}
     };
 
     bool isNumber(const std::string &str)
@@ -363,7 +364,8 @@ namespace Lexer
             {"int8", TokenType::TYPE},
             {"int16", TokenType::TYPE},
             {"int32", TokenType::TYPE},
-            {"int64", TokenType::TYPE}}};
+            {"int64", TokenType::TYPE},
+            {"bool", TokenType::TYPE}}};
 
     void LexerContext::init()
     {
@@ -376,7 +378,8 @@ namespace Lexer
                 {"int8", TokenType::TYPE},
                 {"int16", TokenType::TYPE},
                 {"int32", TokenType::TYPE},
-                {"int64", TokenType::TYPE}}};
+                {"int64", TokenType::TYPE},
+                {"bool", TokenType::TYPE}}};
     }
 
     void LexerContext::pushContext()
