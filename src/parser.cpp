@@ -54,12 +54,11 @@ namespace Parser
             {
                 blocks.push_back(parseBlock(ts));
             }
-            catch(const std::exception& e)
+            catch (const std::exception &e)
             {
                 while (!ts.peek().isEndMultiBlock())
                     ts.get();
             }
-            
         }
         Lexer::LexerContext::popContext();
         auto multiBlock = std::make_shared<NodeMultiBlock>(blocks);
@@ -79,7 +78,7 @@ namespace Parser
             fiToken = ts.get();
         }
         checkToken(fiToken, Lexer::TokenType::KEYWORD_FI, ts);
-        auto node = std::make_shared<NodeIf>(t,fiToken, condition, thenStatement, elseStatement);
+        auto node = std::make_shared<NodeIf>(t, fiToken, condition, thenStatement, elseStatement);
         return addNode(node);
     }
 
@@ -225,7 +224,7 @@ namespace Parser
             pragmaValue = value.value.substr(1, value.value.size() - 2);
         }
         CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
-        auto node = std::make_shared<NodePragma>(pragmaToken, pragmaType.type,pragmaValue, targetObject);
+        auto node = std::make_shared<NodePragma>(pragmaToken, pragmaType.type, pragmaValue, targetObject);
         return addNode(node);
     }
 
@@ -321,10 +320,25 @@ namespace Parser
         return addNode(node);
     }
 
+    NodeIdentifier parseCast(Lexer::TokenStream &ts)
+    {
+        auto typeToken = ts.get();
+        const std::string type = typeToken.value;
+
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        NodeIdentifier expression = parseExpression(ts);
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+
+        auto node = std::make_shared<NodeCast>(typeToken, type, expression);
+        return addNode(node);
+    }
+
     NodeIdentifier parseExpression(Lexer::TokenStream &ts)
     {
         try
         {
+            if (ts.peek().type == Lexer::TokenType::TYPE)
+                return parseCast(ts);
             return parsePrecedence(ts);
         }
         catch (const std::exception &e)
@@ -360,9 +374,12 @@ namespace Parser
         if (ts.peek().type == Lexer::TokenType::PARENTHESIS_OPEN && precedenceIndex == 0)
         {
             left = parseParenthesis(ts);
-        } else if (precedenceIndex > 0) {
+        }
+        else if (precedenceIndex > 0)
+        {
             left = parsePrecedence(ts, precedenceIndex - 1);
-        } else
+        }
+        else
         {
             left = parseTerm(ts);
         }

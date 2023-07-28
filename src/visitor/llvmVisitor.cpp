@@ -1,5 +1,5 @@
 #include "visitor/llvmVisitor.hpp"
-
+#include <set>
 using namespace llvm;
 namespace visitor
 {
@@ -180,28 +180,7 @@ namespace visitor
     void llvmVisitor::visitNode(Parser::Node &node){};
     void llvmVisitor::visitNodeNumber(Parser::NodeNumber &node)
     {
-        std::map<std::string, std::function<Value *()>> typeMap{
-            {"uint8", [&]()
-             { return ConstantInt::get(*context, APInt(8, node.value, false)); }},
-            {"uint16", [&]()
-             { return ConstantInt::get(*context, APInt(16, node.value, false)); }},
-            {"uint32", [&]()
-             { return ConstantInt::get(*context, APInt(32, node.value, false)); }},
-            {"uint64", [&]()
-             { return ConstantInt::get(*context, APInt(64, node.value, false)); }},
-            {"int8", [&]()
-             { return ConstantInt::get(*context, APInt(8, node.value, true)); }},
-            {"int16", [&]()
-             { return ConstantInt::get(*context, APInt(16, node.value, true)); }},
-            {"int32", [&]()
-             { return ConstantInt::get(*context, APInt(32, node.value, true)); }},
-            {"int64", [&]()
-             { return ConstantInt::get(*context, APInt(64, node.value, true)); }},
-            {"", [&]()
-             { return ConstantInt::get(*context, APInt(32, node.value, false)); }},
-            {"bool", [&]()
-             { return ConstantInt::get(*context, APInt(1, node.value, false)); }}};
-        lastValue = typeMap[currentType]();
+        lastValue = typeWithInitialValueContext.get(currentType).value()(node.value);
     };
     void llvmVisitor::visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
     {
@@ -275,6 +254,7 @@ namespace visitor
             Builder->CreateRetVoid();
             return;
         }
+        currentType = node.value.value().get<Parser::NodeExpression>()->type;
         node.value.value()->accept(*this);
         Builder->CreateRet(lastValue);
     }
@@ -386,5 +366,20 @@ namespace visitor
     void llvmVisitor::visitNodePragma(Parser::NodePragma &node)
     {
     }
+
+    void llvmVisitor::visitNodeCast(Parser::NodeCast &node)
+    {
+        currentType = node.type;
+        node.value->accept(*this);
+        llvm::Type *type = typeNameContext.get(node.type).value()();
+
+        std::set<std::string> signedType{"int8", "int16", "int32", "int64"};
+        if (signedType.find(node.type) != signedType.end())
+            lastValue = Builder->CreateCast(Instruction::CastOps::SExt, lastValue, type);
+        else
+            lastValue = Builder->CreateCast(Instruction::CastOps::Trunc, lastValue, type);
+
+    }
+
 
 }

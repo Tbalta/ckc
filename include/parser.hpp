@@ -20,6 +20,7 @@ namespace Parser
     class NodeFunction;
     class NodeFunctionCall;
     class NodePragma;
+    class NodeCast;
 
     class Visitor
     {
@@ -39,6 +40,7 @@ namespace Parser
         virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
         virtual void visitNodePragma(Parser::NodePragma &node) = 0;
         virtual void enterNode(Parser::Node &node){};
+        virtual void visitNodeCast(Parser::NodeCast &node) = 0;
     };
 
     class unexpectedTokenException : public std::exception
@@ -348,6 +350,19 @@ namespace Parser
         {
             NodeBlock::accept(v);
             v.visitNodeFunction(*this);
+        };
+    };
+
+    class NodeCast : public NodeExpression
+    {
+        public:
+        std::string type;
+        NodeIdentifier value;
+        NodeCast(Lexer::Token token, std::string type, NodeIdentifier value) : NodeExpression (token), type(type), value(value){};
+        void accept(Visitor &v) override
+        {
+            NodeExpression::accept(v);
+            v.visitNodeCast(*this);
         };
     };
 

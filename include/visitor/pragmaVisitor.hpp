@@ -6,8 +6,8 @@
 namespace visitor
 {
 
-class pragmaVisitor : public Parser::Visitor
-{
+    class pragmaVisitor : public Parser::Visitor
+    {
     public:
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
@@ -19,11 +19,13 @@ class pragmaVisitor : public Parser::Visitor
         void visitNodeBlockModifier(Parser::NodeBlockModifier &node) override;
         void visitNodeText(Parser::NodeText &node) override;
         void visitNodeReturn(Parser::NodeReturn &node) override;
-        void visitNodeUnaryOperator (Parser::NodeUnaryOperator &node) override;
+        void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) override;
         void visitNodeFunction(Parser::NodeFunction &node) override;
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
+        void visitNodeCast(Parser::NodeCast &node) override;
+
     private:
-        genericContext<std::string, Parser::Node*> pragmaContext;
-};
+        genericContext<std::string, Parser::Node *> pragmaContext;
+    };
 }

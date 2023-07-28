@@ -8,54 +8,14 @@
 namespace visitor
 {
 
-    class functionType : public genericContext<int, std::vector<std::string>>
-    {
-        public:
-            std::string functionName;
-            std::optional<std::string> returnType;
-            functionType(std::string functionName, std::optional<std::string> returnType) : functionName(functionName), returnType(returnType){};
-            functionType() : functionName(""), returnType(std::nullopt) {}
-
-            void add(std::vector<std::string> types)
-            {
-                genericContext::add(types.size(), types);
-            }
-            bool compare(std::vector<std::string> a, std::vector<std::string> b)
-            {
-                return a.size() == b.size() && std::equal(std::begin(a), std::end(a), std::begin(b));
-            }
-
-            bool correspondToFunction(std::vector<std::string> types)
-            {
-                for (auto it = contextStack.rbegin(); it != contextStack.rend(); it++)
-                {
-                    for (auto it2 = it->begin(); it2 != it->end(); it2++)
-                    {
-                        if (compare(it2->second, types))
-                        {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            std::vector<std::vector<std::string>> getAllTypes()
-            {
-                std::vector<std::vector<std::string>> types;
-                for (auto it = contextStack.rbegin(); it != contextStack.rend(); it++)
-                {
-                    for (auto it2 = it->begin(); it2 != it->end(); it2++)
-                    {
-                        types.push_back(it2->second);
-                    }
-                }
-                return types;
-            }
-    };
-
 class typeVisitor : public Parser::Visitor
 {
+    private:
+        Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
+        genericContext<std::string, std::string> variables;
+        std::optional<std::string> currentFunction;
+        std::string lastType;
+        std::string hintType;
     public:
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
@@ -73,13 +33,12 @@ class typeVisitor : public Parser::Visitor
         void visitNodePragma(Parser::NodePragma &node) override;
         void visitBinOperatorBoolean(Parser::NodeBinOperator &node);
         void visitBinOperatorComparison(Parser::NodeBinOperator &node);
+        void visitNodeCast(Parser::NodeCast &node) override;
 
-        typeVisitor() = default;
-    private:
-        std::map<std::string, functionType> functions;
-        genericContext<std::string, std::string> variables;
-        std::optional<std::string> currentFunction;
-        std::string lastType;
-        std::string hintType;
+
+        typeVisitor()
+        {
+            // contextProvider = Context::ContextProvider::getInstance();
+        };
 };
 }
