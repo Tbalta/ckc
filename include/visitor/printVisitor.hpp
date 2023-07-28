@@ -24,6 +24,8 @@ namespace visitor
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
         void enterNode(Parser::Node &node) override;
+        void visitNodeCast(Parser::NodeCast &node) override;
+
     public:
         PrintVisitor() : out(std::cout){};
         PrintVisitor(std::ostream &out) : out(out){};

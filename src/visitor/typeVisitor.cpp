@@ -116,7 +116,7 @@ namespace visitor
     }
     void typeVisitor::visitNodeReturn(Parser::NodeReturn &node)
     {
-        auto function = (*functions.find(currentFunction.value())).second;
+        auto function = (*contextProvider.functions.find(currentFunction.value())).second;
         if (function.returnType.has_value())
         {
             hintType = function.returnType.value();
@@ -156,14 +156,14 @@ namespace visitor
     {
 
         // Register function
-        if (functions.find(node.name) == functions.end())
+        if (contextProvider.functions.find(node.name) == contextProvider.functions.end())
         {
-            functions[node.name] = functionType(node.name, node.returnType);
+            contextProvider.functions[node.name] = Context::functionType(node.name, node.returnType);
         }
 
         // Check if function does not differ in return type
-        if (functions[node.name].returnType != node.returnType)
-            throw type_error(functions[node.name].returnType.value(), node.returnType.value(), node.token.value());
+        if (contextProvider.functions[node.name].returnType != node.returnType)
+            throw type_error(contextProvider.functions[node.name].returnType.value(), node.returnType.value(), node.token.value());
 
         std::vector<std::string> types;
         variables.enterScope();
@@ -172,7 +172,7 @@ namespace visitor
             types.push_back(arg.first);
             variables.add(arg.second, arg.first);
         }
-        functions[node.name].add(types);
+        contextProvider.functions[node.name].add(types);
         currentFunction = node.name;
         if (node.body.has_value())
             node.body.value()->accept(*this);
@@ -181,7 +181,7 @@ namespace visitor
     }
     void typeVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
     {
-        auto function = functions[node.name];
+        auto function = contextProvider.functions[node.name];
         std::vector<std::string> argumentsTypes;
 
         // Search for corresponding overloaded function
@@ -214,5 +214,13 @@ namespace visitor
     void typeVisitor::visitNodePragma(Parser::NodePragma &node)
     {
     }
+
+    void typeVisitor::visitNodeCast(Parser::NodeCast &node)
+    {
+        hintType = "number";
+        node.value->accept(*this);
+        lastType = node.type;
+    }
+
 
 }

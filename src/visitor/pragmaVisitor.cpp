@@ -62,4 +62,6 @@ namespace visitor
             exit(1);
         }
     }
+    void pragmaVisitor::visitNodeCast(Parser::NodeCast &node) {};
+
 }

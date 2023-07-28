@@ -129,4 +129,11 @@ namespace visitor
         out << node.value;
     }
 
+    void PrintVisitor::visitNodeCast(Parser::NodeCast &node)
+    {
+        out << node.type << "(";
+        node.value->accept(*this);
+        out << ")";
+    }
+
 }
