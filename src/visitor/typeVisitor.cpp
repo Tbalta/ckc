@@ -21,7 +21,7 @@ namespace visitor
         node.condition->accept(*this);
         hintType = "";
         if (lastType != "bool")
-            throw type_error("bool", lastType, node.token.value());
+            throw type_error("bool", lastType, node.thisNode);
         node.thenStatement->accept(*this);
         if (node.elseStatement.has_value())
             node.elseStatement.value()->accept(*this);
@@ -72,7 +72,7 @@ namespace visitor
         // Check if hint is compatible with left and right types
         auto expressionType = resolve_collision(type.value(), hint, "number");
         if (!expressionType.has_value())
-            throw type_error(hint, type.value(), node.left->token.value());
+            throw type_error(hint, type.value(), node.thisNode);
 
         node.type = expressionType.value();
         lastType = expressionType.value();
@@ -93,7 +93,7 @@ namespace visitor
             hintType = node.type;
             node.value.value()->accept(*this);
             if (node.type != lastType)
-                throw type_error(node.type, lastType, node.token.value());
+                throw type_error(node.type, lastType, node.thisNode);
         }
         variables.add(node.name, node.type);
         lastType = "";
@@ -104,7 +104,7 @@ namespace visitor
         hintType = type;
         node.value->accept(*this);
         if (type != lastType)
-            throw type_error(type, lastType, node.token.value());
+            throw type_error(type, lastType, node.thisNode);
     }
     void typeVisitor::visitNodeBlockModifier(Parser::NodeBlockModifier &node)
     {
@@ -122,12 +122,12 @@ namespace visitor
             hintType = function.returnType.value();
             node.value.value()->accept(*this);
             if (function.returnType.value() != lastType)
-                throw type_error(function.returnType.value(), lastType, node.token.value());
+                throw type_error(function.returnType.value(), lastType, node.value.value());
         }
         else
         {
             if (node.value.has_value())
-                throw type_error("void", lastType, node.token.value());
+                throw type_error("void", lastType, node.value.value());
         }
         lastType = "";
         hintType = "";
@@ -139,7 +139,7 @@ namespace visitor
             hintType = "bool";
             node.right->accept(*this);
             if (lastType != "bool")
-                throw type_error("bool", lastType, node.token.value());
+                throw type_error("bool", lastType, node.thisNode);
             lastType = "bool";
             return;
         }
@@ -148,7 +148,7 @@ namespace visitor
         std::string hint = hintType;
         auto nodeType = resolve_collision(type, hint, "number");
         if (!nodeType.has_value())
-            throw type_error(hint, type, node.token.value());
+            throw type_error(hint, type, node.thisNode);
         lastType = nodeType.value();
         node.type = nodeType.value();
     }
@@ -163,7 +163,7 @@ namespace visitor
 
         // Check if function does not differ in return type
         if (contextProvider.functions[node.name].returnType != node.returnType)
-            throw type_error(contextProvider.functions[node.name].returnType.value(), node.returnType.value(), node.token.value());
+            throw type_error(contextProvider.functions[node.name].returnType.value(), node.returnType.value(), node.thisNode);
 
         std::vector<std::string> types;
         variables.enterScope();
@@ -196,7 +196,7 @@ namespace visitor
                 try
                 {
                     arg->accept(*this);
-                } catch (type_error e)
+                } catch (type_error &e)
                 {
                     found = false;
                     break;
@@ -209,7 +209,7 @@ namespace visitor
                 return;
             }
         }
-        throw type_error("function", "no matching function call", node.token.value());
+        throw type_error("function", "no matching function call", node.thisNode);
     }
     void typeVisitor::visitNodePragma(Parser::NodePragma &node)
     {

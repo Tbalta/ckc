@@ -273,7 +273,7 @@ namespace Lexer
     {
         if (token.first == token.second)
             return std::string(token.first.value.size(), '^');
-        return std::string(token.first.value.size() + (token.second.column - token.first.column) + token.second.value.size() - 2, '^');
+        return std::string((token.second.column  - token.first.column) + token.second.value.size(), '^');
     }
 
     void TokenStream::highlightMultiplesTokens(std::vector<std::pair<Token, Token>> tokens)

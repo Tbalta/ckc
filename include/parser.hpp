@@ -175,12 +175,12 @@ namespace Parser
     class NodeIf : public NodeBlock
     {
     public:
+        Lexer::Token fiToken;
         NodeIdentifier condition;
         NodeIdentifier thenStatement;
-        Lexer::Token fiToken;
         std::optional<NodeIdentifier> elseStatement;
         NodeIf(Lexer::Token token, Lexer::Token fiToken, NodeIdentifier condition, NodeIdentifier thenStatement, std::optional<NodeIdentifier> elseStatement)
-            : NodeBlock(token), condition(condition), thenStatement(thenStatement), elseStatement(elseStatement), fiToken(fiToken){};
+            : NodeBlock(token), fiToken(fiToken), condition(condition), thenStatement(thenStatement), elseStatement(elseStatement){};
         void accept(Visitor &v) override
         {
             NodeBlock::accept(v);
@@ -355,10 +355,13 @@ namespace Parser
 
     class NodeCast : public NodeExpression
     {
-        public:
-        std::string type;
+    public:
         NodeIdentifier value;
-        NodeCast(Lexer::Token token, std::string type, NodeIdentifier value) : NodeExpression (token), type(type), value(value){};
+        Lexer::Token closeParen;
+        NodeCast(Lexer::Token token, std::string type, NodeIdentifier value, Lexer::Token closeParen) : NodeExpression(token), value(value), closeParen(closeParen)
+        {
+            this->type = type;
+        };
         void accept(Visitor &v) override
         {
             NodeExpression::accept(v);

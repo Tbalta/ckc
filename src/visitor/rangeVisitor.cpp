@@ -67,7 +67,6 @@ namespace visitor
     void rangeVisitor::visitNodePragma(Parser::NodePragma &node){}
     void rangeVisitor::visitNodeCast(Parser::NodeCast &node){
         setMin(node.token.value());
-        setMax(node.token.value());
-        node.value->accept(*this);
+        setMax(node.closeParen);
     }
 }

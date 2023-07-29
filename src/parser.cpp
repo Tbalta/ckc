@@ -279,6 +279,20 @@ namespace Parser
         return addNode(node);
     }
 
+    NodeIdentifier parseCast(Lexer::TokenStream &ts)
+    {
+        auto typeToken = ts.get();
+        const std::string type = typeToken.value;
+
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        NodeIdentifier expression = parseExpression(ts);
+        auto closeParen = ts.get();
+        checkToken(closeParen, Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+
+        auto node = std::make_shared<NodeCast>(typeToken, type, expression, closeParen);
+        return addNode(node);
+    }
+
     NodeIdentifier parseTerm(Lexer::TokenStream &ts)
     {
         Lexer::Token t = ts.peek();
@@ -290,6 +304,8 @@ namespace Parser
         {
             return parseFunctionCall(ts);
         }
+        if (ts.peek().type == Lexer::TokenType::TYPE)
+            return parseCast(ts);
         return parseIdentifier(ts.get());
     }
 
@@ -320,25 +336,10 @@ namespace Parser
         return addNode(node);
     }
 
-    NodeIdentifier parseCast(Lexer::TokenStream &ts)
-    {
-        auto typeToken = ts.get();
-        const std::string type = typeToken.value;
-
-        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
-        NodeIdentifier expression = parseExpression(ts);
-        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
-
-        auto node = std::make_shared<NodeCast>(typeToken, type, expression);
-        return addNode(node);
-    }
-
     NodeIdentifier parseExpression(Lexer::TokenStream &ts)
     {
         try
         {
-            if (ts.peek().type == Lexer::TokenType::TYPE)
-                return parseCast(ts);
             return parsePrecedence(ts);
         }
         catch (const std::exception &e)

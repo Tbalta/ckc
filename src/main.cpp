@@ -160,11 +160,13 @@ int main(int argc, char **argv)
         {
             nodeMain->accept(typeVisitor);
         }
-        catch (const type_error &e)
+        catch (type_error &e)
         {
             error = true;
             std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
-            ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{e.token, e.token}});
+            visitor::rangeVisitor rv;
+            e.node->accept(rv);
+            ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{rv.firstToken.value(), rv.lastToken.value()}});
         }
         catch (different_type_error &e)
         {

@@ -10,10 +10,9 @@ private:
     std::string expected_type;
     std::string actual_type;
     std::string msg;
-
 public:
-    Lexer::Token token;
-    type_error(std::string expected_type, std::string actual_type, Lexer::Token token) : expected_type(expected_type), actual_type(actual_type), token(token){
+    Parser::NodeIdentifier node;
+    type_error(std::string expected_type, std::string actual_type, Parser::NodeIdentifier node) : expected_type(expected_type), actual_type(actual_type), node(node){
         msg = "Type error: expected " + expected_type + " but got " + actual_type;
     };
     const char *what() const throw()
