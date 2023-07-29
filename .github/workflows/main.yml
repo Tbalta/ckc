@@ -15,10 +15,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Install llvm-dev
-      run: sudo apt-get install llvm-dev libgmock-dev
+      run: sudo apt-get install llvm-dev cmake # libgmock-dev
     - name: Install gtest manually
       run: git clone https://github.com/google/googletest.git -b v1.13.0 && cd googletest &&  mkdir build && cd build && cmake .. && make && sudo make install
-      # run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
     - name: mkdir build
       run: mkdir build && mkdir build/test
     - name: test
