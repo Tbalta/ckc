@@ -23,6 +23,7 @@ all: directories $(TARGET)
 test: CXXFLAGS += -DTEST -DPROD -L/usr/lib/x86_64-linux-gnu/ -Itest/include
 prod: CXXFLAGS += -DPROD
 prod: $(TARGET)
+CI: CXXFLAGS = $(CXXFLAGS_CI)
 directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/test
@@ -54,9 +55,7 @@ test: directories $(TARGET) $(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
 	./test/functional/step2.sh ./$(TARGET)
 
-CI: directories
-	$(CXX) -o $(TEST_EXEC) $(TEST_SOURCE) $(CXXFLAGS_CI) $(TEST_LIBS)
-	$(CXX) -o $(TARGET) $(SOURCE) $(CXXFLAGS_CI)
+CI: directories $(TARGET) $(TEST_EXEC)
 	./$(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
 	./test/functional/step2.sh ./$(TARGET)
