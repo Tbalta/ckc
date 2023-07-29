@@ -10,20 +10,20 @@ TEST_SOURCE = $(wildcard test/*.cpp) # $(filter-out src/main.cpp, $(SOURCE))
 OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
 TEST_OBJ= $(addprefix $(BUILD_DIR)/, $(TEST_SOURCE:.cpp=.o))
 
-TEST_LIBS = -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -lgmock -lgmock_main
+TEST_LIBS = -L/usr/local/lib/ -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -lgmock -lgmock_main
 DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
 CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
-CXXFLAGS_CI= -Wall -g -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions -L/usr/local/lib/googletest/ -lgtest  -lgtest_main -DTEST -DPROD -Itest/include -fsanitize=address
+
 # CXXFLAGS+=-fsanitize=address
 .PHONY: directories clean compile test CI
 all: directories $(TARGET)
 test: CXXFLAGS += -DTEST -DPROD -L/usr/lib/x86_64-linux-gnu/ -Itest/include
 prod: CXXFLAGS += -DPROD
 prod: $(TARGET)
-CI: CXXFLAGS = $(CXXFLAGS_CI)
+CI: CXXFLAGS += -DTEST -DPROD -L/usr/lib/x86_64-linux-gnu/ -Itest/include
 directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/test
