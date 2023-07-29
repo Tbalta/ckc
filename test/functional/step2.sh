@@ -33,3 +33,7 @@ function test
 test 'extern int facto(int); int main(void) { return facto(5); }' 'function facto (int32 to) return int32 is int32 plouf := 1; #loop if to > 0 then plouf := to * plouf; to := to - 1; goto loop; fi return plouf; endfunction'  120
 test '' 'function fibo (int32 to) return int32 is if to <= 1 then return to; fi return fibo(to - 1) + fibo(to - 2); endfunction function main () return int32 is return fibo(5); endfunction' 5
 test 'extern int facto(int); int f_c(void) { printf("facto(5)=%d\n", facto(5)); return 0; }' 'function facto (int32 to) return int32 is int32 plouf := 1; #loop if to > 0 then plouf := to * plouf; to := to - 1; goto loop; fi return plouf; endfunction function f_ckc (int32 to) return int32; pragma f_ckc symbol_name is f_c; function main () return int32 is return f_ckc(3); endfunction' 0
+
+# Test type casting
+test '' 'function main() return uint32 is return uint32(uint8(-1)); endfunction' 255
+test '' 'function main() return uint32 is return uint32(uint8(5) + 3); endfunction' 8
