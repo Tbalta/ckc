@@ -62,8 +62,14 @@ namespace visitor
     }
     void rangeVisitor::visitNodeReturn(Parser::NodeReturn &node){}
     void rangeVisitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node){}
-    void rangeVisitor::visitNodeFunction(Parser::NodeFunction &node){}
-    void rangeVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node){}
+    void rangeVisitor::visitNodeFunction(Parser::NodeFunction &node){
+        setMin(node.token.value());
+        setMax(node.endfunctionToken);
+    }
+    void rangeVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node){
+        setMin(node.token.value());
+        setMax(node.closeParen);
+    }
     void rangeVisitor::visitNodePragma(Parser::NodePragma &node){}
     void rangeVisitor::visitNodeCast(Parser::NodeCast &node){
         setMin(node.token.value());

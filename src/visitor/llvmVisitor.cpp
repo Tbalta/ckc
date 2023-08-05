@@ -312,8 +312,8 @@ namespace visitor
             args.push_back(typeMap[arg.first]());
         }
         auto funcType = FunctionType::get(typeMap[node.returnType.value_or("void")](), args, false);
-        auto Function = Function::Create(funcType, Function::ExternalLinkage, node.symbol_name, TheModule.get());
-        contextProvider.addNameTranslation(node.name, node.symbol_name);
+        auto Function = Function::Create(funcType, Function::ExternalLinkage, node.symbol_name.value(), TheModule.get());
+        // contextProvider.addNameTranslation(node.name, node.symbol_name);
         // Set names for all arguments.
         int i = 0;
         for (auto &arg : Function->args())
@@ -348,7 +348,7 @@ namespace visitor
     }
     void llvmVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
     {
-        auto callee = TheModule->getFunction(contextProvider.getNameTranslation(node.name).value_or(node.name));
+        auto callee = TheModule->getFunction(node.symbol_name.value());
         if (callee == nullptr)
         {
             LogError("Unknown function referenced");

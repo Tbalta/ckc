@@ -86,7 +86,7 @@ namespace Parser
     class Node
     {
     public:
-        std::string symbol_name;
+        std::optional<std::string> symbol_name;
         std::optional<Lexer::Token> token;
         NodeIdentifier thisNode;
         Node() : token(std::nullopt) {}
@@ -326,7 +326,8 @@ namespace Parser
     public:
         std::string name;
         std::vector<NodeIdentifier> arguments;
-        NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments) : NodeExpression(token), name(name), arguments(arguments){};
+        Lexer::Token closeParen;
+        NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments, Lexer::Token closeParen) : NodeExpression(token), name(name), arguments(arguments), closeParen(closeParen){};
         void accept(Visitor &v) override
         {
             v.visitNodeFunctionCall(*this);
@@ -340,9 +341,10 @@ namespace Parser
         std::vector<std::pair<std::string, std::string>> arguments;
         std::optional<std::string> returnType;
         std::optional<NodeIdentifier> body;
-        NodeFunction(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body) : NodeBlock(token), name(name), arguments(arguments), returnType(returnType)
+        Lexer::Token endfunctionToken;
+        NodeFunction(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body, Lexer::Token endfunctionToken) : NodeBlock(token), name(name), arguments(arguments), returnType(returnType), endfunctionToken(endfunctionToken)
         {
-            this->symbol_name = name;
+            // this->symbol_name = name;
             this->body = body;
         }
 

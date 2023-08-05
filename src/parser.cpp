@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <iomanip>
+#include <set>
 static bool parserError = false;
 namespace Parser
 {
@@ -42,6 +43,16 @@ namespace Parser
         // while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
         //     continue;
         // return ts.peek().type != Lexer::TokenType::TOKEN_EOF;
+    }
+
+    // Check if the token is in the expected set.
+    bool checkToken(const Lexer::Token &t, std::set<Lexer::TokenType> reference, Lexer::TokenStream &ts)
+    {
+        if (reference.find(t.type) != reference.end())
+            return true;
+        parserError = true;
+        ts.unexpectedToken(t);
+        throw std::runtime_error("Unexpected token");
     }
 
     NodeIdentifier parseMultiBlock(Lexer::TokenStream &ts)
@@ -88,7 +99,7 @@ namespace Parser
     {
         auto tokenFunction = ts.get();
         // Parse the function name.
-        CHECK_TOKEN_AND_RETURN(ts.peek(), Lexer::TokenType::IDENTIFIER, ts);
+        CHECK_TOKEN_AND_RETURN(ts.peek(), std::set<Lexer::TokenType>({Lexer::TokenType::IDENTIFIER, Lexer::TokenType::FUNCTION_NAME}) , ts);
         const std::string name = ts.get().value;
         Lexer::LexerContext::addToken(name, Lexer::TokenType::FUNCTION_NAME);
         Lexer::LexerContext::pushContext();
@@ -120,6 +131,7 @@ namespace Parser
             returnType = ts.get().value;
         }
 
+        Lexer::Token tokenEndFunction;
         // Check for the function body.
         std::optional<NodeIdentifier> body = std::nullopt;
         if (ts.peek().type == Lexer::TokenType::KEYWORD_IS)
@@ -127,17 +139,19 @@ namespace Parser
             ts.get();
             body = parseMultiBlock(ts);
             Lexer::LexerContext::popContext();
-            CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::KEYWORD_ENDFUNCTION, ts);
+            tokenEndFunction = ts.get();
+            CHECK_TOKEN_AND_RETURN(tokenEndFunction, Lexer::TokenType::KEYWORD_ENDFUNCTION, ts);
             if (body.value().get() == nullptr)
                 return NodeIdentifier(-1);
         }
         else
         {
-            CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
+            tokenEndFunction = ts.get();
+            CHECK_TOKEN_AND_RETURN(tokenEndFunction, Lexer::TokenType::SEMICOLON, ts);
         }
 
         // Create the function.
-        auto node = std::make_shared<NodeFunction>(tokenFunction, name, parameters, returnType, std::move(body));
+        auto node = std::make_shared<NodeFunction>(tokenFunction, name, parameters, returnType, std::move(body), tokenEndFunction);
         return addNode(node);
     }
 
@@ -274,8 +288,9 @@ namespace Parser
             else
                 checkToken(ts.peek(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
         }
-        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
-        auto node = std::make_shared<NodeFunctionCall>(functionToken, name, std::move(parameters));
+        auto closeParen = ts.get();
+        checkToken(closeParen, Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        auto node = std::make_shared<NodeFunctionCall>(functionToken, name, std::move(parameters), closeParen);
         return addNode(node);
     }
 
