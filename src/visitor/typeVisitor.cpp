@@ -1,5 +1,6 @@
 #include "visitor/typeVisitor.hpp"
 #include "exception/type_error.hpp"
+#include "exception/function_error.hpp"
 namespace visitor
 {
 
@@ -172,7 +173,14 @@ namespace visitor
             types.push_back(arg.first);
             variables.add(arg.second, arg.first);
         }
-        contextProvider.functions[node.name].add(types);
+        if (!node.symbol_name.has_value() && contextProvider.functions[node.name].getOverloadCount() == 0)
+            node.symbol_name = node.name;
+        else if (!node.symbol_name.has_value())
+            node.symbol_name = node.name + "_" + std::to_string(contextProvider.functions[node.name].getOverloadCount());
+        if (contextProvider.functions[node.name].hasOverload(types))
+            throw function_definition_error(contextProvider.functions[node.name].getDefinition(types).value().node, node.thisNode);
+        contextProvider.functions[node.name].add(types,node.returnType.value(), node.thisNode);
+
         currentFunction = node.name;
         if (node.body.has_value())
             node.body.value()->accept(*this);
@@ -192,20 +200,24 @@ namespace visitor
             for (auto &arg : node.arguments)
             {
                 
-                hintType = parameter[i];
+                hintType = parameter.types[i];
                 try
                 {
                     arg->accept(*this);
+                    found = found && (lastType == parameter.types[i]);
                 } catch (type_error &e)
                 {
                     found = false;
-                    break;
                 }
+                if (!found)
+                    break;
+                
             }
             if (found)
             {
                 lastType = function.returnType.value_or("void");
                 node.type = lastType;
+                node.setSymbolName(parameter.node->symbol_name.value());
                 return;
             }
         }

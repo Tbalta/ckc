@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../genericContext.hpp"
+#include "../contextProvider.hpp"
 namespace visitor
 {
 

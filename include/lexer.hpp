@@ -7,7 +7,7 @@
 #include <optional>
 #include <fstream>
 #include "util.hpp"
-#include "contextProvider.hpp"
+// #include "contextProvider.hpp"
 namespace Lexer
 {
 
@@ -42,6 +42,7 @@ namespace Lexer
         KEYWORD_THEN,
         KEYWORD_IS,
         KEYWORD_FUNCTION,
+        KEYWORD_PARTIAL,
         KEYWORD_PRAGMA,
         SYMBOL_NAME,
         KEYWORD_ENDFUNCTION,
@@ -86,6 +87,7 @@ namespace Lexer
         {TokenType::KEYWORD_RETURN, "return"},
         {TokenType::KEYWORD_FUNCTION, "function"},
         {TokenType::KEYWORD_ENDFUNCTION, "endfunction"},
+        {TokenType::KEYWORD_FUNCTION, "partial"},
 
         // File structure
         {TokenType::TOKEN_EOF, ""},
@@ -201,7 +203,7 @@ namespace Lexer
         std::vector<std::string> lines;
         std::string getNextToken();
         std::string filename = "";
-        Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
+        // Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
 
     public:
         int line = 1;
@@ -224,6 +226,8 @@ namespace Lexer
         std::string getLine(int line);
         VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
         void highlightMultiplesTokens(std::vector<std::pair<Token, Token>> tokens);
+        void printLine(int line);
+
 
         std::vector<Token> toList();
     };

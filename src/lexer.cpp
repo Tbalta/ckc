@@ -308,7 +308,12 @@ namespace Lexer
         }
     }
 
-
+    void TokenStream::printLine(int line)
+    {
+        std::cerr << filename << ":" << line << ":" << std::endl;
+        std::cerr << std::setfill(' ') << std::setw(4) << line << std::left << std::setw(5) << " |" << getLine(line) << std::endl;
+    }
+    
     std::vector<Token> TokenStream::toList()
     {
         std::vector<Token> tokens;

@@ -6,6 +6,7 @@
 // builder
 #include "llvm/IR/IRBuilder.h"
 #include "genericContext.hpp"
+#include "parser.hpp"
 namespace Context
 {
     class variable
@@ -15,49 +16,67 @@ namespace Context
         llvm::AllocaInst *value;
     };
 
-    class functionType : public genericContext<int, std::vector<std::string>>
+    class functionType // : public genericContext<int, std::pair<std::string, std::vector<std::string>>>
     {
     public:
+        class functionInfo
+        {
+            public:
+            std::vector<std::string> types;
+            std::string returnType;
+            Parser::NodeIdentifier node;
+            functionInfo(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node) : types(types), returnType(returnType), node(node){};
+        };
+        std::vector<functionInfo> overloads;
+
         std::string functionName;
         std::optional<std::string> returnType;
         functionType(std::string functionName, std::optional<std::string> returnType) : functionName(functionName), returnType(returnType){};
         functionType() : functionName(""), returnType(std::nullopt) {}
+        int overloadCount = 0;
 
-        void add(std::vector<std::string> types)
+        
+        size_t getOverloadCount()
         {
-            genericContext::add(types.size(), types);
+            return overloads.size();
         }
+        
+        bool hasOverload(std::vector<std::string> types)
+        {
+            for (auto overload : this->overloads)
+            {
+                if (compare(overload.types, types))
+                    return true;
+            }
+            return false;
+        }
+
+        std::optional<functionInfo> getDefinition(std::vector<std::string> types)
+        {
+            for (auto overload : this->overloads)
+            {
+                if (compare(overload.types, types))
+                    return overload;
+            }
+            return std::nullopt;
+        }
+
+
+        void add(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node)
+        {
+            // genericContext::add(0, types);
+            this->overloads.push_back({types, returnType, node});
+            // overloadCount++;
+        }
+
         bool compare(std::vector<std::string> a, std::vector<std::string> b)
         {
             return a.size() == b.size() && std::equal(std::begin(a), std::end(a), std::begin(b));
         }
 
-        bool correspondToFunction(std::vector<std::string> types)
+        std::vector<functionInfo> getAllTypes()
         {
-            for (auto it = contextStack.rbegin(); it != contextStack.rend(); it++)
-            {
-                for (auto it2 = it->begin(); it2 != it->end(); it2++)
-                {
-                    if (compare(it2->second, types))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        std::vector<std::vector<std::string>> getAllTypes()
-        {
-            std::vector<std::vector<std::string>> types;
-            for (auto it = contextStack.rbegin(); it != contextStack.rend(); it++)
-            {
-                for (auto it2 = it->begin(); it2 != it->end(); it2++)
-                {
-                    types.push_back(it2->second);
-                }
-            }
-            return types;
+            return overloads;
         }
     };
 

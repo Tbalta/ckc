@@ -10,6 +10,7 @@
 #include "visitor/typeVisitor.hpp"
 #include "visitor/rangeVisitor.hpp"
 #include "exception/type_error.hpp"
+#include "exception/function_error.hpp"
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
@@ -180,8 +181,21 @@ int main(int argc, char **argv)
             e.nodeB->accept(rv);
             tokens.push_back({rv.firstToken.value(), rv.lastToken.value()});
             ts.highlightMultiplesTokens(tokens);
-            // e.nodeA->accept(pv);
-            // e.nodeA->accept(pv);
+        }
+        catch (function_definition_error &e)
+        {
+            error = true;
+            std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
+            visitor::rangeVisitor rv;
+            e.original_declaration->accept(rv);
+            std::cerr << "Original declaration is here:" << std::endl;
+            ts.printLine(rv.firstToken.value().line);
+            rv = visitor::rangeVisitor();
+            e.new_declaration->accept(rv);
+            std::cerr << "New declaration is here:" << std::endl;
+            ts.printLine(rv.firstToken.value().line);
+
+            
         }
         
         nodes.push_back(nodeMain);
