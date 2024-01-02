@@ -87,7 +87,7 @@ namespace Lexer
         {TokenType::KEYWORD_RETURN, "return"},
         {TokenType::KEYWORD_FUNCTION, "function"},
         {TokenType::KEYWORD_ENDFUNCTION, "endfunction"},
-        {TokenType::KEYWORD_FUNCTION, "partial"},
+        {TokenType::KEYWORD_PARTIAL, "partial"},
 
         // File structure
         {TokenType::TOKEN_EOF, ""},

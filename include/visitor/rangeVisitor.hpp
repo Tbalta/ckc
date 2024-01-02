@@ -24,6 +24,8 @@ class rangeVisitor : public Parser::Visitor
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
         void visitNodeCast(Parser::NodeCast &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
+
 
         std::optional<Lexer::Token> firstToken;
         std::optional<Lexer::Token> lastToken;

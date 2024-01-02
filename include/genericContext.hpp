@@ -24,6 +24,10 @@ class genericContext
         }
         return std::nullopt;
     }
+    bool has(Index index)
+    {
+        return get(index).has_value();
+    }
     void add(Index index, Element element)
     {
         contextStack.back()[index] = element;

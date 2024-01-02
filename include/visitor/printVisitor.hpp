@@ -25,6 +25,7 @@ namespace visitor
         void visitNodePragma(Parser::NodePragma &node) override;
         void enterNode(Parser::Node &node) override;
         void visitNodeCast(Parser::NodeCast &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
 
     public:
         PrintVisitor() : out(std::cout){};

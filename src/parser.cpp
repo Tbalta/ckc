@@ -20,6 +20,11 @@ namespace Parser
         return identifier;
     }
 
+    void replaceNode(NodeIdentifier node, NodeIdentifier newNode)
+    {
+        nodes[node.id] = nodes[newNode.id];
+    }
+
     bool hasError()
     {
         return parserError;
@@ -93,19 +98,10 @@ namespace Parser
         return addNode(node);
     }
 
-    // Parse a function call.
-    // ts shall be at the function name.
-    NodeIdentifier parseFunction(Lexer::TokenStream &ts)
+    // Parse a list of parameters and add them to the context.
+    std::vector<std::pair<std::string, std::string>> parseParameters(Lexer::TokenStream &ts)
     {
-        auto tokenFunction = ts.get();
-        // Parse the function name.
-        CHECK_TOKEN_AND_RETURN(ts.peek(), std::set<Lexer::TokenType>({Lexer::TokenType::IDENTIFIER, Lexer::TokenType::FUNCTION_NAME}) , ts);
-        const std::string name = ts.get().value;
-        Lexer::LexerContext::addToken(name, Lexer::TokenType::FUNCTION_NAME);
-        Lexer::LexerContext::pushContext();
-
-        // Parse the parameters.
-        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
         std::vector<std::pair<std::string, std::string>> parameters; // <type, name>
         while (!ts.isEmpty() && ts.peek().type != Lexer::TokenType::PARENTHESIS_CLOSE)
         {
@@ -120,7 +116,22 @@ namespace Parser
             else
                 checkToken(ts.peek(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
         }
-        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        checkToken(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        return parameters;
+    }
+    // Parse a function call.
+    // ts shall be at the function name.
+    NodeIdentifier parseFunction(Lexer::TokenStream &ts)
+    {
+        auto tokenFunction = ts.get();
+        // Parse the function name.
+        CHECK_TOKEN_AND_RETURN(ts.peek(), std::set<Lexer::TokenType>({Lexer::TokenType::IDENTIFIER, Lexer::TokenType::FUNCTION_NAME}) , ts);
+        const std::string name = ts.get().value;
+        Lexer::LexerContext::addToken(name, Lexer::TokenType::FUNCTION_NAME);
+        Lexer::LexerContext::pushContext();
+
+        // Parse the parameters.
+        std::vector<std::pair<std::string, std::string>> parameters = parseParameters(ts); // <type, name>
 
         // Optional return type.
         std::optional<std::string> returnType = std::nullopt;
@@ -152,6 +163,34 @@ namespace Parser
 
         // Create the function.
         auto node = std::make_shared<NodeFunction>(tokenFunction, name, parameters, returnType, std::move(body), tokenEndFunction);
+        return addNode(node);
+    }
+
+    NodeIdentifier parsePartial(Lexer::TokenStream &ts)
+    {
+        // partial partialName ...
+        auto tokenPartial = ts.get();
+        auto partialName = ts.get();
+        checkToken(partialName, Lexer::TokenType::IDENTIFIER, ts);
+        Lexer::LexerContext::addToken(partialName.value, Lexer::TokenType::FUNCTION_NAME);
+        
+        // ... (parameters) is ...
+        std::vector<std::pair<std::string, std::string>> parameters = parseParameters(ts); // <type, name>
+        checkToken(ts.get(), Lexer::TokenType::KEYWORD_IS, ts);
+
+        // ... functionCall()
+        auto calledFunction = ts.peek();
+        checkToken(calledFunction, Lexer::TokenType::FUNCTION_NAME, ts);
+
+        Lexer::LexerContext::pushContext();
+        for (auto &parameter : parameters)
+        {
+            Lexer::LexerContext::addToken(parameter.second, Lexer::TokenType::VARIABLE_NAME);
+        }
+        auto functionCall = parseFunctionCall(ts);
+        Lexer::LexerContext::popContext();
+
+        auto node = std::make_shared<NodePartial>(tokenPartial, partialName.value, parameters, functionCall);
         return addNode(node);
     }
 
@@ -207,6 +246,9 @@ namespace Parser
             break;
         case Lexer::TokenType::TOKEN_EOF:
             return statement;
+        case Lexer::TokenType::KEYWORD_PARTIAL:
+            statement = parsePartial(ts);
+            break;
         default:
             ts.unexpectedToken(ts.get());
             break;
@@ -324,24 +366,6 @@ namespace Parser
         return parseIdentifier(ts.get());
     }
 
-    // NodeIdentifier parseMul(Lexer::TokenStream &ts)
-    // {
-    //     Lexer::Token t = ts.peek();
-    //     // mul -> term mul'
-    //     NodeIdentifier term = parseTerm(ts);
-    //     // while t is a * or / parseMul
-    //     t = ts.peek();
-    //     while (t.getPrecedence() == 10)
-    //     {
-    //         auto op = ts.get().type;
-    //         NodeIdentifier right = parseTerm(ts);
-    //         auto node = std::make_shared<NodeBinOperator>(std::move(term), std::move(right), op);
-    //         term = addNode(node);
-    //         t = ts.peek();
-    //     }
-    //     return term;
-    // }
-
     NodeIdentifier parseUnary(Lexer::TokenStream &ts)
     {
         auto token = ts.get();
@@ -410,19 +434,6 @@ namespace Parser
         }
         return left;
     }
-
-    // NodeIdentifier parseExpression(Lexer::TokenStream &ts)
-    // {
-    //     NodeIdentifier left = parseMul(ts);
-    //     while (ts.peek().getPrecedence() == 20)
-    //     {
-    //         auto op = ts.get().type;
-    //         NodeIdentifier right = parseMul(ts);
-    //         auto node = std::make_shared<NodeBinOperator>(left, right, op);
-    //         left = addNode(node);
-    //     }
-    //     return left;
-    // }
 
     NodeIdentifier parseVariableDeclaration(Lexer::TokenStream &ts)
     {

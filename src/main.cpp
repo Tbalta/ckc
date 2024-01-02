@@ -9,6 +9,7 @@
 #include "visitor/pragmaVisitor.hpp"
 #include "visitor/typeVisitor.hpp"
 #include "visitor/rangeVisitor.hpp"
+#include "visitor/macroVisitor.hpp"
 #include "exception/type_error.hpp"
 #include "exception/function_error.hpp"
 
@@ -134,6 +135,7 @@ int main(int argc, char **argv)
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
     visitor::pragmaVisitor pragmaVisitor;
     visitor::typeVisitor typeVisitor;
+    visitor::macroVisitor macroVisitor;
     std::vector<Parser::NodeIdentifier> nodes;
     bool error = false;
     while (!ts.isEmpty())
@@ -156,6 +158,7 @@ int main(int argc, char **argv)
             nodeMain.get()->accept(pv);
             std::cout << std::endl;
         }
+        nodeMain.get()->accept(macroVisitor);
         nodeMain.get()->accept(pragmaVisitor);
         try
         {

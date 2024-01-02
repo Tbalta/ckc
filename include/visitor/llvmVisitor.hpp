@@ -1,7 +1,7 @@
 #pragma once
 
-#include "llvm/IR/Value.h"
-#include "llvm/IR/IRBuilder.h"
+#include <llvm/IR/Value.h>
+#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include "../genericContext.hpp"
 #include "../parser.hpp"
@@ -77,6 +77,7 @@ namespace visitor
         void visitNodePragma(Parser::NodePragma &node) override;
         void visitLazyBinOperator(Parser::NodeBinOperator &node);
         void visitNodeCast(Parser::NodeCast &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
     };
 
 }
