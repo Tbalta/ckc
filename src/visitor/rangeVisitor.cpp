@@ -33,7 +33,7 @@ namespace visitor
             lastToken = token;
     }
 
-    void rangeVisitor::visitNodeIf(Parser::NodeIf &node)
+    void rangeVisitor::visitNode(Parser::Node &node)
     {
         setMin(node.token.value());
         setMax(node.fiToken);
@@ -83,5 +83,9 @@ namespace visitor
     void rangeVisitor::visitNodePartial(Parser::NodePartial &node) {};
     void rangeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node){
         
+        if (node.firstToken.has_value())
+            setMin(node.firstToken.value());
+        if (node.lastToken.has_value())
+            setMax(node.lastToken.value());
     }
 }

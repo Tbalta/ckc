@@ -38,3 +38,8 @@ test 'extern int facto(int); int f_c(void) { printf("facto(5)=%d\n", facto(5)); 
 test '' 'function main() return uint32 is return uint32(uint8(-1)); endfunction' 255
 test '' 'function main() return uint32 is return uint32(uint8(5) + 3); endfunction' 8
 test '' 'function main () return int32 is int32 res := 1; int32 x := 5; for (int32 i := 0; i < x; i := i + 1) res := res * 2; endfor return res; endfunction' 32
+
+# Test partial function application
+test '' 'function id(int32 x) return int32 is return x; endfunction function main() return int32 is partial return25() is id(25);    return return25(); endfunction pragma main symbol_name is "main";' 25
+test '' 'function add(int32 x, int32 y) return int32 is return x + y; endfunction function main() return int32 is partial add2(int32 x) is add(x, 2); partial add3(int32 x) is add(x, 3); return add2(add3(1)); endfunction pragma main symbol_name is "main";' 6
+test '' 'function add(int32 x, int32 y) return int32 is return x + y; endfunction function main() return int32 is partial double(int32 x) is add(x, x); return double(2); endfunction pragma main symbol_name is "main"; ' 4

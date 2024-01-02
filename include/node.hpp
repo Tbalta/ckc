@@ -76,15 +76,20 @@ namespace Parser
     {
     public:
         std::optional<std::string> symbol_name;
-        std::optional<Lexer::Token> token;
+        std::optional<Lexer::Token> firstToken;
+        std::optional<Lexer::Token> lastToken;
         NodeIdentifier thisNode;
-        Node() : token(std::nullopt) {}
-        Node(Lexer::Token token) : token(token){};
-        bool breakFlowControl = false;
+
+        Node() : firstToken(std::nullopt), lastToken(std::nullopt) {}
+        Node(Lexer::Token token) : firstToken(token), lastToken(token){};
+        Node(Lexer::Token firstToken, Lexer::Token lastToken) : firstToken(firstToken), lastToken(lastToken){};
         void setSymbolName(std::string symbol_name);
         virtual void accept(Visitor &v);
         virtual void enter(Visitor &v);
         virtual ~Node() = default;
+        std::shared_ptr<Node> clone() {
+            return std::make_shared<Node>(*this);
+        }
     };
 
     class NodeExpression : public Node
@@ -93,7 +98,11 @@ namespace Parser
         std::string type;
         NodeExpression(){};
         NodeExpression(Lexer::Token token) : Node(token){};
+        NodeExpression(Lexer::Token firstToken, Lexer::Token lastToken) : Node(firstToken, lastToken){};
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<Node> clone() {
+            return std::make_shared<NodeExpression>(*this);
+        }
     };
 
     class NodeBlockModifier : public Node
@@ -103,6 +112,10 @@ namespace Parser
         std::string modifier_value;
         NodeBlockModifier(Lexer::ModifierType modifier_type, std::string modifier_value) : modifier_type(modifier_type), modifier_value(modifier_value){};
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<NodeBlockModifier> clone() {
+            return std::make_shared<NodeBlockModifier>(*this);
+        }
+
     };
 
     class NodeBlock : public Node
@@ -110,8 +123,12 @@ namespace Parser
     public:
         NodeBlock(){};
         NodeBlock(Lexer::Token token) : Node(token){};
+        NodeBlock(Lexer::Token firstToken, Lexer::Token lastToken) : Node(firstToken, lastToken){};
         std::optional<NodeIdentifier> modifier;
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<Node> clone() {
+            return std::make_shared<NodeBlock>(*this);
+        }
     };
 
     class NodeMultiBlock : public NodeBlock
@@ -121,6 +138,9 @@ namespace Parser
         NodeMultiBlock(std::vector<NodeIdentifier> blocks) : blocks(blocks){};
         NodeMultiBlock() = default;
         virtual void accept(Visitor &v);
+        std::shared_ptr<NodeMultiBlock> clone() {
+            return std::make_shared<NodeMultiBlock>(*this);
+        }
     };
 
     class NodeStatement : public NodeBlock
@@ -130,12 +150,14 @@ namespace Parser
         NodeStatement(){};
         NodeStatement(Lexer::Token token) : NodeBlock(token){};
         virtual void accept(Visitor &v);
+        std::shared_ptr<Node> clone() {
+            return std::make_shared<NodeStatement>(*this);
+        }
     };
 
     class NodeIf : public NodeBlock
     {
     public:
-        Lexer::Token fiToken;
         NodeIdentifier condition;
         NodeIdentifier thenStatement;
         std::optional<NodeIdentifier> elseStatement;
@@ -143,6 +165,9 @@ namespace Parser
             : NodeBlock(token), fiToken(fiToken), condition(condition), thenStatement(thenStatement), elseStatement(elseStatement){};
         NodeIf() = default;
         virtual void accept(Visitor &v);
+        std::shared_ptr<NodeIf> clone() {
+            return std::make_shared<NodeIf>(*this);
+        }
     };
 
     class NodeGoto : public NodeStatement
@@ -151,6 +176,9 @@ namespace Parser
         std::string label;
         NodeGoto(std::string label) : label(label){};
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeGoto> clone() {
+            return std::make_shared<NodeGoto>(*this);
+        }
     };
 
     class NodeReturn : public NodeStatement
@@ -160,6 +188,9 @@ namespace Parser
         NodeReturn(Lexer::Token token, std::optional<NodeIdentifier> value) : NodeStatement(token), value(value){};
         NodeReturn() = default;
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeReturn> clone() {
+            return std::make_shared<NodeReturn>(*this);
+        }
     };
 
     class NodeBinOperator : public NodeExpression
@@ -197,6 +228,9 @@ namespace Parser
                 Lexer::TokenType::OPERATOR_NE};
             return comparisonOperators.find(op) != comparisonOperators.end();
         }
+        std::shared_ptr<NodeBinOperator> clone() {
+            return std::make_shared<NodeBinOperator>(*this);
+        }
     };
 
     class NodeUnaryOperator : public NodeExpression
@@ -206,6 +240,9 @@ namespace Parser
         Lexer::TokenType op;
         NodeUnaryOperator(Lexer::Token token, NodeIdentifier right, Lexer::TokenType op) : NodeExpression(token), right(right), op(op){};
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<NodeUnaryOperator> clone() {
+            return std::make_shared<NodeUnaryOperator>(*this);
+        }
     };
 
     class NodeNumber : public NodeExpression
@@ -214,6 +251,9 @@ namespace Parser
         int value;
         NodeNumber(int value, Lexer::Token token) : NodeExpression(token), value(value) {}
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<NodeNumber> clone() {
+            return std::make_shared<NodeNumber>(*this);
+        }
     };
 
     class NodeText : public NodeExpression
@@ -222,6 +262,9 @@ namespace Parser
         std::string name;
         NodeText(std::string name, Lexer::Token token) : NodeExpression(token), name(name){};
         virtual void accept(Visitor &v) override;
+        std::shared_ptr<Node> clone() {
+            return std::make_shared<NodeText>(*this);
+        }
     };
 
     class NodeVariableDeclaration : public NodeStatement
@@ -236,6 +279,9 @@ namespace Parser
                 this->value = std::move(value.value());
         };
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeVariableDeclaration> clone() {
+            return std::make_shared<NodeVariableDeclaration>(*this);
+        }
     };
 
     class NodeVariableAssignment : public NodeStatement
@@ -245,6 +291,9 @@ namespace Parser
         NodeIdentifier value;
         NodeVariableAssignment(Lexer::Token token, std::string name, NodeIdentifier value) : NodeStatement(token), name(name), value(value){};
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeVariableAssignment> clone() {
+            return std::make_shared<NodeVariableAssignment>(*this);
+        }
     };
 
     class NodeFunctionCall : public NodeExpression
@@ -252,10 +301,11 @@ namespace Parser
     public:
         std::string name;
         std::vector<NodeIdentifier> arguments;
-        Lexer::Token closeParen;
-        NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments, Lexer::Token closeParen) : NodeExpression(token), name(name), arguments(arguments), closeParen(closeParen){};
+        NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments, Lexer::Token closeParen) : NodeExpression(token, closeParen), name(name), arguments(arguments){};
         void accept(Visitor &v) override;
-
+        std::shared_ptr<NodeFunctionCall> clone() {
+            return std::make_shared<NodeFunctionCall>(*this);
+        }
     };
 
     class NodeFunction : public NodeBlock
@@ -273,6 +323,9 @@ namespace Parser
         }
 
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeFunction> clone() {
+            return std::make_shared<NodeFunction>(*this);
+        }
     };
 
     class NodePartial : public NodeStatement
@@ -283,18 +336,23 @@ namespace Parser
         NodeIdentifier linkedFunction;
         NodePartial(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, NodeIdentifier linkedFunction) : NodeStatement(token), name(name), arguments(arguments), linkedFunction(linkedFunction){};
         void accept(Visitor &v) override;
+        std::shared_ptr<NodePartial> clone() {
+            return std::make_shared<NodePartial>(*this);
+        }
     };
 
     class NodeCast : public NodeExpression
     {
     public:
         NodeIdentifier value;
-        Lexer::Token closeParen;
-        NodeCast(Lexer::Token token, std::string type, NodeIdentifier value, Lexer::Token closeParen) : NodeExpression(token), value(value), closeParen(closeParen)
+        NodeCast(Lexer::Token token, std::string type, NodeIdentifier value, Lexer::Token closeParen) : NodeExpression(token, closeParen), value(value)
         {
             this->type = type;
         };
         void accept(Visitor &v) override;
+        std::shared_ptr<NodeCast> clone() {
+            return std::make_shared<NodeCast>(*this);
+        }
     };
 
     class NodePragma : public NodeBlock
@@ -304,8 +362,10 @@ namespace Parser
         std::string value;
         Lexer::Token targetObject;
         NodePragma(Lexer::Token token, Lexer::TokenType pragmaType, std::string value, Lexer::Token targetObject) : NodeBlock(token), pragmaType(pragmaType), value(value), targetObject(targetObject){};
-
         void accept(Visitor &v) override;
+        std::shared_ptr<NodePragma> clone() {
+            return std::make_shared<NodePragma>(*this);
+        }
     };
 
     class NodeFor : public NodeBlock
@@ -330,6 +390,9 @@ namespace Parser
         std::vector<NodeIdentifier> blocks;
         void accept(Visitor &v) override;
         NodeMultiBlockExpression(std::vector<NodeIdentifier> blocks) : blocks(blocks){};
+        std::shared_ptr<NodeMultiBlockExpression> clone() {
+            return std::make_shared<NodeMultiBlockExpression>(*this);
+        }
     };
 
 }
