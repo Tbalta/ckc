@@ -1,12 +1,12 @@
 #pragma once
 #include <string>
 #include <map>
-#include "llvm/IR/Instruction.h"
+#include <llvm/IR/Instruction.h>
 #include <vector>
 // builder
-#include "llvm/IR/IRBuilder.h"
+#include <llvm/IR/IRBuilder.h>
 #include "genericContext.hpp"
-#include "parser.hpp"
+#include "node.hpp"
 namespace Context
 {
     class variable

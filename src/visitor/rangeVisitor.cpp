@@ -80,4 +80,8 @@ namespace visitor
         setMin(node.token.value());
         setMax(node.closeParen);
     }
+    void rangeVisitor::visitNodePartial(Parser::NodePartial &node) {};
+    void rangeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node){
+        
+    }
 }

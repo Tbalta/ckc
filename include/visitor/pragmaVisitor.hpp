@@ -24,7 +24,8 @@ namespace visitor
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
         void visitNodeCast(Parser::NodeCast &node) override;
-
+        void visitNodePartial(Parser::NodePartial &node) override;
+        
     private:
         genericContext<std::string, Parser::Node *> pragmaContext;
     };

@@ -396,6 +396,7 @@ namespace visitor
             lastValue = Builder->CreateCast(Instruction::CastOps::Trunc, lastValue, type);
 
     }
+    void llvmVisitor::visitNodePartial(Parser::NodePartial &node) {};
 
 
 }

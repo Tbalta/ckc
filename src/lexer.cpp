@@ -79,7 +79,7 @@ namespace Lexer
     }
     void TokenStream::moveHead()
     {
-        int c = input.peek();
+        char c = input.peek();
         while (c != EOF && (c == ' ' || c == '\t' || c == '\n' || c == '\r'))
         {
             input.get();
