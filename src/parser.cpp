@@ -149,7 +149,6 @@ namespace Parser
         {
             ts.get();
             body = parseMultiBlock(ts);
-            Lexer::LexerContext::popContext();
             tokenEndFunction = ts.get();
             CHECK_TOKEN_AND_RETURN(tokenEndFunction, Lexer::TokenType::KEYWORD_ENDFUNCTION, ts);
             if (body.value().get() == nullptr)
@@ -160,6 +159,7 @@ namespace Parser
             tokenEndFunction = ts.get();
             CHECK_TOKEN_AND_RETURN(tokenEndFunction, Lexer::TokenType::SEMICOLON, ts);
         }
+        Lexer::LexerContext::popContext();
 
         // Create the function.
         auto node = std::make_shared<NodeFunction>(tokenFunction, name, parameters, returnType, std::move(body), tokenEndFunction);
@@ -175,6 +175,7 @@ namespace Parser
         Lexer::LexerContext::addToken(partialName.value, Lexer::TokenType::FUNCTION_NAME);
         
         // ... (parameters) is ...
+        Lexer::LexerContext::pushContext();
         std::vector<std::pair<std::string, std::string>> parameters = parseParameters(ts); // <type, name>
         checkToken(ts.get(), Lexer::TokenType::KEYWORD_IS, ts);
 
@@ -182,7 +183,6 @@ namespace Parser
         auto calledFunction = ts.peek();
         checkToken(calledFunction, Lexer::TokenType::FUNCTION_NAME, ts);
 
-        Lexer::LexerContext::pushContext();
         for (auto &parameter : parameters)
         {
             Lexer::LexerContext::addToken(parameter.second, Lexer::TokenType::VARIABLE_NAME);

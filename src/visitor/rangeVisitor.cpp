@@ -33,50 +33,11 @@ namespace visitor
             lastToken = token;
     }
 
-    void rangeVisitor::visitNodeIf(Parser::NodeIf &node)
+    void rangeVisitor::visitNode(Parser::Node &node)
     {
-        setMin(node.token.value());
-        // setMin(node.fiToken.value());
-    }
-    void rangeVisitor::visitNodeGoto(Parser::NodeGoto &node)
-    {
-    }
-    void rangeVisitor::visitBinOperator(Parser::NodeBinOperator &node)
-    {
-        node.left->accept(*this);
-        node.right->accept(*this);
-    }
-    void rangeVisitor::visitNode(Parser::Node &node){}
-    void rangeVisitor::visitNodeNumber(Parser::NodeNumber &node)
-    {
-        setMin(node.token.value());
-        setMax(node.token.value());
-    }
-    void rangeVisitor::visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node){}
-    void rangeVisitor::visitNodeVariableAssignment(Parser::NodeVariableAssignment &node){}
-    void rangeVisitor::visitNodeBlockModifier(Parser::NodeBlockModifier &node){}
-    void rangeVisitor::visitNodeText(Parser::NodeText &node)
-    {
-        setMin(node.token.value());
-        setMax(node.token.value());
-    }
-    void rangeVisitor::visitNodeReturn(Parser::NodeReturn &node){}
-    void rangeVisitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node){}
-    void rangeVisitor::visitNodeFunction(Parser::NodeFunction &node){
-        setMin(node.token.value());
-        setMax(node.endfunctionToken);
-    }
-    void rangeVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node){
-        setMin(node.token.value());
-        setMax(node.closeParen);
-    }
-    void rangeVisitor::visitNodePragma(Parser::NodePragma &node){}
-    void rangeVisitor::visitNodeCast(Parser::NodeCast &node){
-        setMin(node.token.value());
-        setMax(node.closeParen);
-    }
-    void rangeVisitor::visitNodePartial(Parser::NodePartial &node) {};
-    void rangeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node){
-        
+        if (node.firstToken.has_value())
+            setMin(node.firstToken.value());
+        if (node.lastToken.has_value())
+            setMax(node.lastToken.value());
     }
 }

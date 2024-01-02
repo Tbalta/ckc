@@ -1,4 +1,5 @@
 #include "visitor/macroVisitor.hpp"
+#include "visitor/copyVisitor.hpp"
 #include "symbolTable.hpp"
 
 namespace visitor
@@ -38,7 +39,7 @@ namespace visitor
         {
             auto arg = partialFunction->arguments[i];
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
-                partialCall.token.value(),
+                partialCall.arguments[i]->firstToken.value(),
                 arg.first,
                 variableReplacements[arg.second],
                 std::move(partialCall.arguments[i])
@@ -48,6 +49,10 @@ namespace visitor
 
         // Add the linked function call
         renameVisitor renameVisitor(variableReplacements);
+        copyVisitor copyVisitor;
+        linkedCall->accept(copyVisitor);
+        linkedCall = copyVisitor.newCopy;
+        
         linkedCall->accept(renameVisitor);
         blocks.push_back(linkedCall);
 
@@ -70,10 +75,13 @@ namespace visitor
     void macroVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
     {
         auto partialFunction = partialFunctionContext.get(node.name);
-        if (!partialFunction.has_value())
-            return;
-        auto newBlock = createNewBlockFromPartial(node);
-        Parser::replaceNode(node.thisNode, newBlock);
+        if (partialFunction.has_value())
+        {
+            auto newBlock = createNewBlockFromPartial(node);
+            Parser::replaceNode(node.thisNode, newBlock);
+        }
+        for (auto &arg : node.arguments)
+            arg->accept(*this);
     }
 
 

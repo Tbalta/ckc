@@ -156,6 +156,7 @@ endfunction
     only_if_x_is_set(50);
 }
 ```
+## Partial function
 
 ## Operators
 ### Arithmetic operators

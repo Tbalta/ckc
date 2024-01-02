@@ -4,11 +4,11 @@ namespace visitor
 {
     void PrintVisitor::enterNode(Parser::Node &node)
     {
-        if (!node.token.has_value())
+        if (!node.firstToken.has_value())
             return;
-        if (node.token.value().line != currentLine)
+        if (node.firstToken.value().line != currentLine)
         {
-            currentLine = node.token.value().line;
+            currentLine = node.firstToken.value().line;
             out << std::endl;
             out << std::right << std::setfill(' ') << std::setw(4) << currentLine << std::left << std::setw(5) << " |" ;
         }
