@@ -135,7 +135,7 @@ namespace visitor
     }
     void typeVisitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node)
     {
-        if (node.token.value().isBooleanOperator())
+        if (node.firstToken.value().isBooleanOperator())
         {
             hintType = "bool";
             node.right->accept(*this);
@@ -162,7 +162,7 @@ namespace visitor
             contextProvider.functions[node.name] = Context::functionType(node.name, node.returnType);
         }
 
-        // Check if function does not differ in return type
+        // Check if function differ in return type
         if (contextProvider.functions[node.name].returnType != node.returnType)
             throw type_error(contextProvider.functions[node.name].returnType.value(), node.returnType.value(), node.thisNode);
 
@@ -179,7 +179,7 @@ namespace visitor
             node.symbol_name = node.name + "_" + std::to_string(contextProvider.functions[node.name].getOverloadCount());
         if (contextProvider.functions[node.name].hasOverload(types))
             throw function_definition_error(contextProvider.functions[node.name].getDefinition(types).value().node, node.thisNode);
-        contextProvider.functions[node.name].add(types, node.returnType.value(), node.thisNode);
+        contextProvider.functions[node.name].add(types, node.returnType.value_or("void"), node.thisNode);
 
         currentFunction = node.name;
         if (node.body.has_value())
@@ -190,8 +190,6 @@ namespace visitor
     void typeVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
     {
         auto function = contextProvider.functions[node.name];
-        std::vector<std::string> argumentsTypes;
-
         // Search for corresponding overloaded function
         for (auto parameter : function.getAllTypes())
         {
@@ -210,6 +208,10 @@ namespace visitor
                 {
                     found = false;
                 }
+                catch (no_matching_function_call &e)
+                {
+                    found = false;
+                }
                 if (!found)
                     break;
             }
@@ -221,7 +223,7 @@ namespace visitor
                 return;
             }
         }
-        throw type_error("function", "no matching function call", node.thisNode);
+        throw no_matching_function_call(node.thisNode);
     }
     void typeVisitor::visitNodePragma(Parser::NodePragma &node)
     {
@@ -233,7 +235,28 @@ namespace visitor
         node.value->accept(*this);
         lastType = node.type;
     }
-    void typeVisitor::visitNodePartial(Parser::NodePartial &node){};
+    void typeVisitor::visitNodePartial(Parser::NodePartial &node)
+    {
+
+        std::vector<std::string> types;
+        variables.enterScope();
+        for (auto &arg : node.arguments)
+        {
+            variables.add(arg.second, arg.first);
+            types.push_back(arg.first);
+        }
+        node.linkedFunction->accept(*this);
+        variables.exitScope();
+        // if (contextProvider.functions.find(node.name) == contextProvider.functions.end())
+        // {
+        //     contextProvider.functions[node.name] = Context::functionType(node.name, node.linkedFunction.get<Parser::NodeExpression>()->type);
+        // }
+
+        // if (contextProvider.functions[node.name].hasOverload(types))
+        //     throw function_definition_error(contextProvider.functions[node.name].getDefinition(types).value().node, node.thisNode);
+        // contextProvider.functions[node.name].add(types, node.linkedFunction.get<Parser::NodeExpression>()->type, node.thisNode);
+        // node.setSymbolName(node.name);
+    };
 
     void typeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
     {

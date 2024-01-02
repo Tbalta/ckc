@@ -195,6 +195,13 @@ int main(int argc, char **argv)
             e.new_declaration->accept(rv);
             std::cerr << "New declaration is here:" << std::endl;
             ts.printLine(rv.firstToken.value().line);
+        } catch (no_matching_function_call &e)
+        {
+            error = true;
+            std::cerr << ERROR_MESSAGE " " << std::string(e.what()) << std::endl;
+            visitor::rangeVisitor rv;
+            e.node->accept(rv);
+            ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{rv.firstToken.value(), rv.lastToken.value()}});
         }
 
         nodes.push_back(nodeMain);
