@@ -28,6 +28,7 @@ namespace visitor
         void printNewLine(int newLineNumber);
         void printNewLine(std::optional<Lexer::Token> token);
         void visitNodeCast(Parser::NodeCast &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
 
     public:
         PrintVisitor() : out(std::cout){};

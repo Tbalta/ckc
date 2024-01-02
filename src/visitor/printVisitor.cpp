@@ -160,5 +160,7 @@ namespace visitor
         node.value->accept(*this);
         out << ")";
     }
+    void PrintVisitor::visitNodePartial(Parser::NodePartial &node) {};
+
 
 }

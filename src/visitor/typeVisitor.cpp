@@ -179,7 +179,7 @@ namespace visitor
             node.symbol_name = node.name + "_" + std::to_string(contextProvider.functions[node.name].getOverloadCount());
         if (contextProvider.functions[node.name].hasOverload(types))
             throw function_definition_error(contextProvider.functions[node.name].getDefinition(types).value().node, node.thisNode);
-        contextProvider.functions[node.name].add(types,node.returnType.value(), node.thisNode);
+        contextProvider.functions[node.name].add(types, node.returnType.value(), node.thisNode);
 
         currentFunction = node.name;
         if (node.body.has_value())
@@ -199,19 +199,19 @@ namespace visitor
             bool found = true;
             for (auto &arg : node.arguments)
             {
-                
+
                 hintType = parameter.types[i];
                 try
                 {
                     arg->accept(*this);
                     found = found && (lastType == parameter.types[i]);
-                } catch (type_error &e)
+                }
+                catch (type_error &e)
                 {
                     found = false;
                 }
                 if (!found)
                     break;
-                
             }
             if (found)
             {
@@ -233,6 +233,18 @@ namespace visitor
         node.value->accept(*this);
         lastType = node.type;
     }
+    void typeVisitor::visitNodePartial(Parser::NodePartial &node){};
 
-
+    void typeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
+    {
+        auto previousHint = hintType;
+        hintType = "";
+        for (size_t i = 0; i < node.blocks.size() - 1; i++)
+        {
+            node.blocks[i]->accept(*this);
+        }
+        hintType = previousHint;
+        node.blocks[node.blocks.size() - 1]->accept(*this);
+        node.type = lastType;
+    }
 }

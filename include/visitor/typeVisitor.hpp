@@ -35,6 +35,9 @@ class typeVisitor : public Parser::Visitor
         void visitBinOperatorBoolean(Parser::NodeBinOperator &node);
         void visitBinOperatorComparison(Parser::NodeBinOperator &node);
         void visitNodeCast(Parser::NodeCast &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
+        void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;
+
 
 
         typeVisitor()

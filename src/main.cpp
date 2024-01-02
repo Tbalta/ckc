@@ -11,6 +11,7 @@
 #include "visitor/rangeVisitor.hpp"
 #include "visitor/unreachableVisitor.hpp"
 #include "visitor/mapVisitor.hpp"
+#include "visitor/macroVisitor.hpp"
 #include "exception/type_error.hpp"
 #include "exception/function_error.hpp"
 
@@ -139,6 +140,7 @@ int main(int argc, char **argv)
     visitor::llvmVisitor lv{Context, Builder, Mod, contextProvider};
     visitor::pragmaVisitor pragmaVisitor;
     visitor::typeVisitor typeVisitor;
+    visitor::macroVisitor macroVisitor;
     std::vector<Parser::NodeIdentifier> nodes;
     bool error = false;
     while (!ts.isEmpty())
