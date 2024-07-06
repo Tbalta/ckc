@@ -10,6 +10,8 @@ class rangeVisitor : public Parser::Visitor
 {
     public:
         void visitNode(Parser::Node &node) override;
+        void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node);
+
         std::optional<Lexer::Token> firstToken;
         std::optional<Lexer::Token> lastToken;
     private:

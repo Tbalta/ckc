@@ -88,4 +88,12 @@ namespace visitor
         if (node.lastToken.has_value())
             setMax(node.lastToken.value());
     }
+
+    void rangeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
+    {
+        if (node.firstToken.has_value())
+            setMin(node.firstToken.value());
+        if (node.lastToken.has_value())
+            setMax(node.lastToken.value());
+    }
 }

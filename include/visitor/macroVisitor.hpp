@@ -9,10 +9,12 @@ namespace visitor
     public:
         void visitNodePartial(Parser::NodePartial &node) override;
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node);
+        void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
         macroVisitor(/* args */) = default;
         ~macroVisitor() = default;
     private:
         genericContext<std::string, Parser::NodeIdentifier> partialFunctionContext;
         Parser::NodeIdentifier createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall);
+        Parser::NodeIdentifier parent;
     }; 
 }
