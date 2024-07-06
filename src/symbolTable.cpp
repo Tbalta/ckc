@@ -24,6 +24,8 @@ namespace SymbolTable
         {
             i++;
         }
-        return name + std::to_string(i);
+        auto newName = name + std::to_string(i);
+        addSymbol(newName);
+        return newName;
     }
 }

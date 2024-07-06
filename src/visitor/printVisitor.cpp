@@ -160,7 +160,17 @@ namespace visitor
         node.value->accept(*this);
         out << ")";
     }
-    void PrintVisitor::visitNodePartial(Parser::NodePartial &node) {};
+    void PrintVisitor::visitNodePartial(Parser::NodePartial &node) {
+        out << "partial " << node.name << " ";
+        out << "(";
+        for (ssize_t i = 0; i < ssize_t(node.arguments.size() - 1); i++)
+        {
+            out << node.arguments[i].first << " " << node.arguments[i].second << ", ";
+        }
+        if (node.arguments.size() > 0)
+            out << (node.arguments.end() - 1)->first << " " << (node.arguments.end() - 1)->second;
+        out << ")";
+    };
 
 
 }

@@ -203,7 +203,14 @@ int main(int argc, char **argv)
             e.node->accept(rv);
             ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{rv.firstToken.value(), rv.lastToken.value()}});
         }
-
+        nodeMain.get()->accept(macroVisitor);
+        visitor::PrintVisitor pv;
+        if (!silent)
+        {
+            nodeMain.get()->accept(pv);
+            std::cout << std::endl;
+        }
+        
         nodes.push_back(nodeMain);
     }
     delete input;

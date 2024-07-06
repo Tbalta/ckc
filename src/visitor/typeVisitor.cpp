@@ -71,6 +71,7 @@ namespace visitor
         if (!type.has_value())
             throw different_type_error(node.left, node.right);
         // Check if hint is compatible with left and right types
+        node.type = type.value();
         auto expressionType = resolve_collision(type.value(), hint, "number");
         if (!expressionType.has_value())
             throw type_error(hint, type.value(), node.thisNode);
@@ -246,16 +247,21 @@ namespace visitor
             types.push_back(arg.first);
         }
         node.linkedFunction->accept(*this);
+        auto body = node.linkedFunction.get<Parser::NodeExpression>();
         variables.exitScope();
-        // if (contextProvider.functions.find(node.name) == contextProvider.functions.end())
-        // {
-        //     contextProvider.functions[node.name] = Context::functionType(node.name, node.linkedFunction.get<Parser::NodeExpression>()->type);
-        // }
 
-        // if (contextProvider.functions[node.name].hasOverload(types))
-        //     throw function_definition_error(contextProvider.functions[node.name].getDefinition(types).value().node, node.thisNode);
-        // contextProvider.functions[node.name].add(types, node.linkedFunction.get<Parser::NodeExpression>()->type, node.thisNode);
-        // node.setSymbolName(node.name);
+        if (contextProvider.functions.find(node.name) == contextProvider.functions.end())
+        {
+            contextProvider.functions[node.name] = Context::functionType(node.name, body->type);
+        }
+
+        // Check if function differ in return type
+        if (contextProvider.functions[node.name].returnType != body->type)
+            throw type_error(contextProvider.functions[node.name].returnType.value(), body->type, node.thisNode);
+        
+        auto overloadId = contextProvider.functions[node.name].add(types, body->type, node.linkedFunction);
+        partialContext.add(overloadId, node.name);
+
     };
 
     void typeVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
@@ -269,5 +275,13 @@ namespace visitor
         hintType = previousHint;
         node.blocks[node.blocks.size() - 1]->accept(*this);
         node.type = lastType;
+    }
+    void typeVisitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
+    {
+        partialContext.enterScope();
+        Visitor::visitNodeMultiBlock(node);
+        for (auto &overload : partialContext.getCurrentContext())
+            contextProvider.removeOverload(overload.second, overload.first);
+        partialContext.exitScope();
     }
 }

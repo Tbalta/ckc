@@ -55,4 +55,20 @@ namespace Context
         return std::nullopt;
     }
 
+    bool ContextProvider::removeOverload(std::string name, int overload)
+    {
+        auto function = functions[name];
+        for (auto it = function.overloads.begin(); it != function.overloads.end(); ++it)
+        {
+            if (it->id == overload)
+            {
+                function.overloads.erase(it);
+                if (function.overloads.size() == 0)
+                    functions.erase(name);
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

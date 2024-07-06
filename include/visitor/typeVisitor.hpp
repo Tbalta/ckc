@@ -14,6 +14,7 @@ class typeVisitor : public Parser::Visitor
     private:
         Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
         genericContext<std::string, std::string> variables;
+        genericContext<int, std::string> partialContext;
         std::optional<std::string> currentFunction;
         std::string lastType;
         std::string hintType;
@@ -37,7 +38,7 @@ class typeVisitor : public Parser::Visitor
         void visitNodeCast(Parser::NodeCast &node) override;
         void visitNodePartial(Parser::NodePartial &node) override;
         void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;
-
+        void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
 
 
         typeVisitor()

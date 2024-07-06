@@ -25,7 +25,8 @@ namespace Context
             std::vector<std::string> types;
             std::string returnType;
             Parser::NodeIdentifier node;
-            functionInfo(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node) : types(types), returnType(returnType), node(node){};
+            int id;
+            functionInfo(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node, int id) : types(types), returnType(returnType), node(node), id(id){};
         };
         std::vector<functionInfo> overloads;
 
@@ -62,11 +63,11 @@ namespace Context
         }
 
 
-        void add(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node)
+        int add(std::vector<std::string> types, std::string returnType, Parser::NodeIdentifier node)
         {
             // genericContext::add(0, types);
-            this->overloads.push_back({types, returnType, node});
-            // overloadCount++;
+            this->overloads.push_back({types, returnType, node, overloadCount});
+            return overloadCount++;
         }
 
         bool compare(std::vector<std::string> a, std::vector<std::string> b)
@@ -102,6 +103,7 @@ namespace Context
         variable getVariable(std::string name);
         void addBasicBlock(std::string name, llvm::BasicBlock *block);
         void addNameTranslation(std::string name, std::string translation);
+        bool removeOverload(std::string name, int overload);
         std::optional<std::string> getNameTranslation(std::string name);
         llvm::BasicBlock *getBasicBlock(std::string name);
         std::map<std::string, functionType> functions;

@@ -66,9 +66,27 @@ namespace Parser
                 return nullptr;
             return std::dynamic_pointer_cast<NodeType>(nodes[id]);
         };
+        template <typename NodeType = Node>
+        const std::shared_ptr<NodeType> get() const
+        {
+            if (id == -1)
+                return nullptr;
+            return std::dynamic_pointer_cast<NodeType>(nodes[id]);
+        };
+
         std::shared_ptr<Node> operator->()
         {
             return get();
+        }
+
+        const std::shared_ptr<Node> operator->() const
+        {
+            return get();
+        }
+
+        bool operator<(const NodeIdentifier &other) const
+        {
+            return id < other.id;
         }
     };
 
