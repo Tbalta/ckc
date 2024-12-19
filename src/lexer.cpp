@@ -229,7 +229,7 @@ namespace Lexer
         std::cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token: " << t.value;
         if (expected.has_value())
         {
-            std::cerr << ", expected: " << Lexer::tokenTypeToString(expected.value());
+            std::cerr << " expected: " << Lexer::tokenTypeToString(expected.value());
         }
         std::cerr << std::endl;
         std::cerr << filename << ":" << t.line << ":" << t.column << std::endl;
