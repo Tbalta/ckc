@@ -24,7 +24,7 @@ class LexerTest : public ::testing::Test {
 
 #define RESET_COL "\033[0m"
 #define RED_COL "\033[31m"
-TEST_F(LexerTest, checkUnexpectedTokenMessage_noExpected)
+TEST_F(LexerTest, checkUnexpectedTokenMessage_NoExpected)
 {
   auto stream = std::stringstream();
   Lexer::TokenStream ts(stream, "myfile.kc");
@@ -34,6 +34,18 @@ TEST_F(LexerTest, checkUnexpectedTokenMessage_noExpected)
 
   auto result = cerr.str();
   ASSERT_TRUE(result.find(RED_COL "[ERROR] " RESET_COL "Unexpected token: a") != std::string::npos);
+}
+
+TEST_F(LexerTest, checkUnexpectedTokenMessage_WithExpected)
+{
+  auto stream = std::stringstream();
+  Lexer::TokenStream ts(stream, "myfile.kc");
+
+  std::ostringstream cerr = std::ostringstream();
+  ts.unexpectedToken(Token(TokenType::IDENTIFIER, "a", 1, 1), std::make_optional<TokenType>(TokenType::SEMICOLON), cerr);
+
+  auto result = cerr.str();
+  ASSERT_TRUE(result.find(RED_COL "[ERROR] " RESET_COL "Unexpected token: a expected: ;") != std::string::npos);
 }
 
 TEST_F(LexerTest, ifTest) {
