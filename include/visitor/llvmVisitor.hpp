@@ -22,18 +22,15 @@ namespace visitor
         Context::ContextProvider &contextProvider;
         genericContext<std::string, std::function<Value *(uint64_t)>> typeWithInitialValueContext;
         genericContext<std::string, std::function<Type *()>> typeNameContext;
-        // genericContext<std::string, std::string> ckcToSymbolName;
 
         void enterBlock()
         {
             contextProvider.enterScope();
-            // ckctoSymbolName.enterScope();
         }
 
         void exitBlock()
         {
             contextProvider.exitScope();
-            // ckctoSymbolName.exitScope();
         }
 
     public:

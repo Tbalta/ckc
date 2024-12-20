@@ -25,22 +25,23 @@ namespace Parser
     class Visitor
     {
     public:
-        virtual void visitNodeIf(Parser::NodeIf &node) = 0;
-        virtual void visitNodeGoto(Parser::NodeGoto &node) = 0;
-        virtual void visitBinOperator(Parser::NodeBinOperator &node) = 0;
-        virtual void visitNode(Parser::Node &node){};
-        virtual void visitNodeNumber(Parser::NodeNumber &node) = 0;
-        virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) = 0;
-        virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node) = 0;
-        virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node) = 0;
-        virtual void visitNodeText(Parser::NodeText &node) = 0;
-        virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
-        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) = 0;
-        virtual void visitNodeFunction(Parser::NodeFunction &node) = 0;
-        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
-        virtual void visitNodePragma(Parser::NodePragma &node) = 0;
-        virtual void enterNode(Parser::Node &node){};
-        virtual void visitNodeCast(Parser::NodeCast &node) = 0;
+        virtual void visitNodeIf(Parser::NodeIf &node);
+        virtual void visitNodeGoto(Parser::NodeGoto &node);
+        virtual void visitBinOperator(Parser::NodeBinOperator &node);
+        virtual void visitNode(Parser::Node &node);
+        virtual void visitNodeNumber(Parser::NodeNumber &node);
+        virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node);
+        virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node);
+        virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node);
+        virtual void visitNodeText(Parser::NodeText &node);
+        virtual void visitNodeReturn(Parser::NodeReturn &node);
+        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node);
+        virtual void visitNodeFunction(Parser::NodeFunction &node);
+        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node);
+        virtual void visitNodePragma(Parser::NodePragma &node);
+        virtual void enterNode(Parser::Node &node);
+        virtual void visitNodeCast(Parser::NodeCast &node);
+        virtual void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
     };
 
     class unexpectedTokenException : public std::exception
@@ -91,6 +92,7 @@ namespace Parser
         NodeIdentifier thisNode;
         Node() : token(std::nullopt) {}
         Node(Lexer::Token token) : token(token){};
+        bool breakFlowControl = false;
         void setSymbolName(std::string symbol_name)
         {
             this->symbol_name = symbol_name;
@@ -153,10 +155,7 @@ namespace Parser
         virtual void accept(Visitor &v)
         {
             NodeBlock::accept(v);
-            for (auto &block : blocks)
-            {
-                block.get()->accept(v);
-            }
+            v.visitNodeMultiBlock(*this);
         };
     };
 
@@ -344,7 +343,6 @@ namespace Parser
         Lexer::Token endfunctionToken;
         NodeFunction(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, std::optional<std::string> returnType, std::optional<NodeIdentifier> body, Lexer::Token endfunctionToken) : NodeBlock(token), name(name), arguments(arguments), returnType(returnType), endfunctionToken(endfunctionToken)
         {
-            // this->symbol_name = name;
             this->body = body;
         }
 

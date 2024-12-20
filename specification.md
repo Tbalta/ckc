@@ -33,7 +33,7 @@ An expression is a line with a value.
 <number> ::= [0-9]+
 
 
-<if> ::= "if" <expression> "then" <statement> ("else" <statement>)?
+<if> ::= "if" <expression> "then" <statement> ("else" <statement>)? "fi"
 <assigment> ::= <type> <identifier> ":=" <expression>
 <procedure_call> ::= <procedure_identifier> "(" <expression>* ")"
 <procedure_identifier> ::= "procedure"

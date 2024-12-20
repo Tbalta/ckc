@@ -9,6 +9,7 @@
 #include "visitor/pragmaVisitor.hpp"
 #include "visitor/typeVisitor.hpp"
 #include "visitor/rangeVisitor.hpp"
+#include "visitor/unreachableVisitor.hpp"
 #include "exception/type_error.hpp"
 #include "exception/function_error.hpp"
 
@@ -17,8 +18,9 @@
 #include <llvm/IR/Module.h>
 
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/TargetRegistry.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -84,6 +86,7 @@ int main(int argc, char **argv)
         errs() << "No input file\n";
         return 1;
     }
+
     auto TargetTriple = sys::getDefaultTargetTriple();
 
     llvm::InitializeAllTargetInfos();
@@ -208,6 +211,31 @@ int main(int argc, char **argv)
     }
     if (error)
         return 1;
+
+
+
+    for (auto &node : nodes)
+    {
+        visitor::unreachableVisitor uv;
+        node.get()->accept(uv);
+
+        if (uv.unreachableNodes.size() > 0)
+        {
+            std::cerr << "Unreachable code detected" << std::endl;
+            for (auto &node : uv.unreachableNodes)
+            {
+                visitor::rangeVisitor rv;
+                node->accept(rv);
+                ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{rv.firstToken.value(), rv.lastToken.value()}});
+            }
+            error = true;
+        }
+    }
+
+    if (error)
+        return 1;
+
+
     for (auto &node : nodes)
     {
         node.get()->accept(lv);

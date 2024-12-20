@@ -4,7 +4,7 @@ TEST_EXEC = unittest
 BUILD_DIR = build
 
 SOURCE= $(wildcard src/*.cpp) $(wildcard src/visitor/*.cpp)
-TEST_SOURCE = $(wildcard test/*.cpp) # $(filter-out src/main.cpp, $(SOURCE))
+TEST_SOURCE = $(wildcard test/**/*.cpp) $(wildcard test/*.cpp) # $(filter-out src/main.cpp, $(SOURCE))
 
 
 OBJ = $(addprefix $(BUILD_DIR)/, $(SOURCE:.cpp=.o))
@@ -15,7 +15,7 @@ DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
-CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
+CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config-15 --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
 
 # CXXFLAGS+=-fsanitize=address
 .PHONY: directories clean compile test CI
@@ -27,6 +27,7 @@ CI: CXXFLAGS += -DTEST -DPROD -L/usr/lib/x86_64-linux-gnu/ -Itest/include
 directories:
 	@mkdir -p $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)/test
+	@mkdir -p $(BUILD_DIR)/test/visitor
 	@mkdir -p $(BUILD_DIR)/src
 	@mkdir -p $(BUILD_DIR)/src/visitor
 
