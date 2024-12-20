@@ -224,50 +224,24 @@ namespace Lexer
     }
 #define RESET_COL "\033[0m"
 #define RED_COL "\033[31m"
-    void TokenStream::unexpectedToken(Token t, std::optional<TokenType> expected)
+    void TokenStream::unexpectedToken(Token t, std::optional<TokenType> expected, std::ostream& cerr)
     {
-        std::cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token: " << t.value;
+        cerr << RED_COL << "[ERROR] " << RESET_COL << "Unexpected token: " << t.value;
         if (expected.has_value())
         {
-            std::cerr << " expected: " << Lexer::tokenTypeToString(expected.value());
+            cerr << " expected: " << Lexer::tokenTypeToString(expected.value());
         }
-        std::cerr << std::endl;
-        std::cerr << filename << ":" << t.line << ":" << t.column << std::endl;
-        std::cerr << std::setfill(' ') << std::setw(4) << t.line << std::left << std::setw(5) << " |" << getLine(t.line) << std::endl;
-        std::cerr << std::setw(t.column - 1 + 9) << "" << RED_COL << std::setw(t.value.size()) << std::setfill('^') << "" << RESET_COL << std::setfill(' ') << std::endl;
-        std::cerr << std::setfill(' ') << std::right;
+        cerr << std::endl;
+        cerr << filename << ":" << t.line << ":" << t.column << std::endl;
+        cerr << std::setfill(' ') << std::setw(4) << t.line << std::left << std::setw(5) << " |" << getLine(t.line) << std::endl;
+        cerr << std::setw(t.column - 1 + 9) << "" << RED_COL << std::setw(t.value.size()) << std::setfill('^') << "" << RESET_COL << std::setfill(' ') << std::endl;
+        cerr << std::setfill(' ') << std::right;
     }
 
     std::string Token::underline(std::string color)
     {
         return std::string(column - 1, ' ') + color + std::string(value.size(), '^') + RESET_COL;
     }
-
-    // if the token range is on multiple lines, split the token in multiple tokens
-    // std::vector<std::pair<Token, Token>> TokenStream::splitTokenOnSameLine(std::pair<Token, Token> token)
-    // {
-    //     std::vector<std::pair<Token, Token>> tokens;
-    //     if (token.first.line == token.second.line)
-    //     {
-    //         tokens.push_back(token);
-    //         return tokens;
-    //     }
-    //     for (int i = token.first.line; i <= token.second.line; i++)
-    //     {
-    //         if (i == token.first.line)
-    //         {
-    //             tokens.push_back({token.first, Token(TokenType::TOKEN_EOF, "", i, token.first.column + token.first.value.size())});
-    //         }
-    //         else if (i == token.second.line)
-    //         {
-    //             tokens.push_back({Token(TokenType::TOKEN_EOF, "", token.second.line, token.second.column), token.second});
-    //         }
-    //         else
-    //         {
-    //             tokens.push_back({Token(TokenType::TOKEN_EOF, "", i, 1), Token(TokenType::TOKEN_EOF, "", i, getLine(i).size() + 1)});
-    //         }
-    //     }
-    // }
 
     std::string getWave(std::pair<Token, Token> token)
     {
@@ -355,10 +329,6 @@ namespace Lexer
         return comparisonOperators.find(type) != comparisonOperators.end();
     }
 
-    // std::vector<std::map<std::string, TokenType>> LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>
-    // {
-    //     std::m
-    // };
     // Initialize the context stack with the global context with at least one map
     std::vector<std::map<std::string, TokenType>> LexerContext::contextStack = std::vector<std::map<std::string, TokenType>>{
         std::map<std::string, TokenType>{

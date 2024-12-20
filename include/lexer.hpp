@@ -7,6 +7,7 @@
 #include <optional>
 #include <fstream>
 #include "util.hpp"
+#include <iostream>
 // #include "contextProvider.hpp"
 namespace Lexer
 {
@@ -203,7 +204,6 @@ namespace Lexer
         std::vector<std::string> lines;
         std::string getNextToken();
         std::string filename = "";
-        // Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
 
     public:
         int line = 1;
@@ -224,7 +224,7 @@ namespace Lexer
         Token peek();
         bool isEmpty();
         std::string getLine(int line);
-        VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt);
+        VIRTUAL void unexpectedToken(Token token, std::optional<TokenType> expected = std::nullopt, std::ostream& cerr = std::cerr);
         void highlightMultiplesTokens(std::vector<std::pair<Token, Token>> tokens);
         void printLine(int line);
 
