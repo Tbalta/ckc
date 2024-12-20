@@ -1,4 +1,6 @@
 #pragma once
+#include <optional>
+#include <map>
 
 template <typename Index, typename Element>
 class genericContext

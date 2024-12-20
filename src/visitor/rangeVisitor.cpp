@@ -36,7 +36,7 @@ namespace visitor
     void rangeVisitor::visitNodeIf(Parser::NodeIf &node)
     {
         setMin(node.token.value());
-        // setMin(node.fiToken.value());
+        setMax(node.fiToken);
     }
     void rangeVisitor::visitNodeGoto(Parser::NodeGoto &node)
     {
@@ -60,7 +60,12 @@ namespace visitor
         setMin(node.token.value());
         setMax(node.token.value());
     }
-    void rangeVisitor::visitNodeReturn(Parser::NodeReturn &node){}
+    void rangeVisitor::visitNodeReturn(Parser::NodeReturn &node){
+        setMin(node.token.value());
+        setMax(node.token.value());
+        if (node.value.has_value())
+            node.value.value()->accept(*this);
+    }
     void rangeVisitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node){}
     void rangeVisitor::visitNodeFunction(Parser::NodeFunction &node){
         setMin(node.token.value());

@@ -16,12 +16,18 @@ namespace visitor
         BasicBlock *thenBB = BasicBlock::Create(*context, "then", Builder->GetInsertBlock()->getParent());
         BasicBlock *elseBB = BasicBlock::Create(*context, "else");
         BasicBlock *mergeBB = BasicBlock::Create(*context, "ifcont");
+
         Builder->CreateCondBr(condV, thenBB, elseBB);
         Builder->SetInsertPoint(thenBB);
         enterBlock();
         node.thenStatement.get()->accept(*this);
         exitBlock();
-        Builder->CreateBr(mergeBB);
+        
+        if (!node.thenStatement->breakFlowControl)
+        {
+            Builder->CreateBr(mergeBB);
+        }
+
         Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(elseBB);
         Builder->SetInsertPoint(elseBB);
         if (node.elseStatement.has_value())
@@ -29,11 +35,19 @@ namespace visitor
             enterBlock();
             node.elseStatement.value().get()->accept(*this);
             exitBlock();
+
+            if (!node.elseStatement.value()->breakFlowControl)
+            {
+                Builder->CreateBr(mergeBB);
+            }
         }
 
-        Builder->CreateBr(mergeBB);
-        Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBB);
-        Builder->SetInsertPoint(mergeBB);
+        bool mergeReachable = !node.thenStatement->breakFlowControl || (node.elseStatement.has_value() && !node.elseStatement.value()->breakFlowControl);
+        if (mergeReachable)
+        {
+            Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBB);
+            Builder->SetInsertPoint(mergeBB);
+        }
     }
 
     void llvmVisitor::visitNodeGoto(Parser::NodeGoto &node)
@@ -45,6 +59,7 @@ namespace visitor
             contextProvider.addBasicBlock(node.label, block);
         }
         Builder->CreateBr(block);
+        Builder->CreateUnreachable();
     }
     void llvmVisitor::visitBinOperator(Parser::NodeBinOperator &node)
     {
@@ -257,6 +272,7 @@ namespace visitor
         currentType = node.value.value().get<Parser::NodeExpression>()->type;
         node.value.value()->accept(*this);
         Builder->CreateRet(lastValue);
+        Builder->CreateUnreachable();
     }
 
     void llvmVisitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node)
@@ -313,7 +329,7 @@ namespace visitor
         }
         auto funcType = FunctionType::get(typeMap[node.returnType.value_or("void")](), args, false);
         auto Function = Function::Create(funcType, Function::ExternalLinkage, node.symbol_name.value(), TheModule.get());
-        // contextProvider.addNameTranslation(node.name, node.symbol_name);
+
         // Set names for all arguments.
         int i = 0;
         for (auto &arg : Function->args())
@@ -334,7 +350,7 @@ namespace visitor
         {
             auto *alloca = Builder->CreateAlloca(arg.getType(), 0, arg.getName());
             Builder->CreateStore(&arg, alloca);
-            contextProvider.addVariable(arg.getName(), alloca, node.arguments[i].first);
+            contextProvider.addVariable(arg.getName().str(), alloca, node.arguments[i].first);
             i++;
         }
         node.body.value().get()->accept(*this);
