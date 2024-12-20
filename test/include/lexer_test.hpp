@@ -9,5 +9,5 @@ class MockTokenStream : public TokenStream
 public:
     using TokenStream::TokenStream;
 
-    MOCK_METHOD(void, unexpectedToken, (Token, std::optional<TokenType>), (override));
+    MOCK_METHOD(void, unexpectedToken, (Token, std::optional<TokenType>, std::ostream&), (override));
 };
