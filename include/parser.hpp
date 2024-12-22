@@ -21,6 +21,7 @@ namespace Parser
     class NodeFunctionCall;
     class NodePragma;
     class NodeCast;
+    class NodeFor;
 
     class Visitor
     {
@@ -42,6 +43,7 @@ namespace Parser
         virtual void enterNode(Parser::Node &node);
         virtual void visitNodeCast(Parser::NodeCast &node);
         virtual void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
+        virtual void visitNodeFor(Parser::NodeFor &node);
     };
 
     class unexpectedTokenException : public std::exception
@@ -82,7 +84,7 @@ namespace Parser
             return get();
         }
     };
-    // NodeIdentifier addNode(std::shared_ptr<Node> node);
+    NodeIdentifier addNode(std::shared_ptr<Node> node);
 
     class Node
     {
@@ -381,6 +383,21 @@ namespace Parser
         {
             NodeBlock::accept(v);
             v.visitNodePragma(*this);
+        };
+    };
+
+    class NodeFor : public NodeBlock
+    {
+    public:
+        std::optional<NodeIdentifier> initialiser;
+        std::optional<NodeIdentifier> condition;
+        std::optional<NodeIdentifier> increment;
+        NodeIdentifier body;
+        NodeFor(Lexer::Token token, std::optional<NodeIdentifier> initialiser, std::optional<NodeIdentifier> condition, std::optional<NodeIdentifier> increment, NodeIdentifier body) : NodeBlock(token), initialiser(initialiser), condition(condition), increment(increment), body(body){};
+        void accept(Visitor &v) override
+        {
+            NodeBlock::accept(v);
+            v.visitNodeFor(*this);
         };
     };
 

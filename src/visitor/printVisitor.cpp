@@ -4,20 +4,40 @@ namespace visitor
 {
     void PrintVisitor::enterNode(Parser::Node &node)
     {
-        if (!node.token.has_value())
-            return;
-        if (node.token.value().line != currentLine)
-        {
-            currentLine = node.token.value().line;
-            out << std::endl;
-            out << std::right << std::setfill(' ') << std::setw(4) << currentLine << std::left << std::setw(5) << " |" ;
-        }
+        printNewLine(node.token);
     }
+
+    void PrintVisitor::printNewLine(std::optional<Lexer::Token> token)
+    {
+        const int newLineNumber = token.has_value() ? token.value().line : currentLine;
+        
+        if (newLine || newLineNumber != currentLine)
+        {
+            printNewLine(newLineNumber);
+        }
+
+        newLine = false;
+    }
+
+    void PrintVisitor::printNewLine(int newLineNumber)
+    {
+        out << std::endl;
+        if (newLineNumber != currentLine)
+        {
+            out << std::right << std::setfill(' ') << std::setw(4) << newLineNumber << std::left << std::setw(5) << " |";
+        } else
+        {
+            out << std::right << std::setfill(' ') << std::setw(4) << " " << std::left << std::setw(5) << " |";
+        }
+
+        currentLine = newLineNumber;
+    }
+    
+
+
 
     void PrintVisitor::visitNodeIf(Parser::NodeIf &node)
     {
-        if (node.modifier.has_value())
-            node.modifier.value().get()->accept(*this);
         out << "if ";
         node.condition.get()->accept(*this);
         out << " then ";
@@ -27,11 +47,13 @@ namespace visitor
             out << " else ";
             node.elseStatement.value().get()->accept(*this);
         }
-        out << " fi";
+        printNewLine(node.fiToken.line);
+        out << "fi";
     }
     void PrintVisitor::visitNodeGoto(Parser::NodeGoto &node)
     {
         out << "goto " << node.label;
+        newLine = true;
     }
     void PrintVisitor::visitBinOperator(Parser::NodeBinOperator &node)
     {
@@ -66,6 +88,7 @@ namespace visitor
             out << " = ";
             node.value.value().get()->accept(*this);
         }
+        newLine = true;
     }
 
     void PrintVisitor::visitNodeVariableAssignment(Parser::NodeVariableAssignment &node)
@@ -74,11 +97,13 @@ namespace visitor
             node.modifier.value().get()->accept(*this);
         out << node.name << " = ";
         node.value.get()->accept(*this);
+        newLine = true;
     }
     void PrintVisitor::visitNodeBlockModifier(Parser::NodeBlockModifier &node)
     {
-        out << "named"
-                  << " " << node.modifier_value << " ";
+        out << "#named" << " " << node.modifier_value << " ";
+        out << std::endl;
+        out << std::right << std::setfill(' ') << std::setw(4) << " " << std::left << std::setw(5) << " |";
     }
     void PrintVisitor::visitNodeText(Parser::NodeText &node)
     {

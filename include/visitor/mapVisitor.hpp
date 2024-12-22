@@ -1,15 +1,26 @@
+/*
+ * desugaringVisitor.hpp
+ * This visitor replaces for loops by if/goto
+ */
+
 #pragma once
+
 #include "../parser.hpp"
-#include <iostream>
-#include <sstream>
+#include <functional>
+#include <vector>
+
 namespace visitor
 {
-    class PrintVisitor : public Parser::Visitor
+    class mapVisitor : public Parser::Visitor
     {
     private:
-        int currentLine = 0;
-        bool newLine = true;
-        std::ostream &out;
+        Parser::NodeIdentifier newNode;
+        std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction = [](Parser::Node &node)
+        { return node.thisNode; };
+
+    public:
+        mapVisitor() = default;
+        mapVisitor(std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction) : mapFunction(mapFunction) {};
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
         void visitBinOperator(Parser::NodeBinOperator &node) override;
@@ -25,12 +36,8 @@ namespace visitor
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
         void enterNode(Parser::Node &node) override;
-        void printNewLine(int newLineNumber);
-        void printNewLine(std::optional<Lexer::Token> token);
         void visitNodeCast(Parser::NodeCast &node) override;
-
-    public:
-        PrintVisitor() : out(std::cout){};
-        PrintVisitor(std::ostream &out) : out(out){};
+        void visitNodeMultiBlock(Parser::NodeMultiBlock &node) override;
+        void visitNodeFor(Parser::NodeFor &node) override;
     };
 }

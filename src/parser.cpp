@@ -64,6 +64,17 @@ namespace Parser
         }
     }
 
+     void Visitor::visitNodeFor(Parser::NodeFor &node)
+     {
+        if (node.initialiser.has_value())
+            node.initialiser.value()->accept(*this);
+        if (node.condition.has_value())
+            node.condition.value()->accept(*this);
+        if (node.increment.has_value())
+            node.increment.value()->accept(*this);
+        node.body->accept(*this);
+     }
+
     std::map<NodeIdentifierIndex, std::shared_ptr<Node>> nodes;
 
     NodeIdentifier addNode(std::shared_ptr<Node> node)
@@ -242,7 +253,8 @@ namespace Parser
         return addNode(node);
     }
 
-    NodeIdentifier parseStatement(Lexer::TokenStream &ts)
+
+    NodeIdentifier parseInlineStatement(Lexer::TokenStream &ts)
     {
         const Lexer::Token t = ts.peek();
         NodeIdentifier statement;
@@ -266,6 +278,12 @@ namespace Parser
             ts.unexpectedToken(ts.get());
             break;
         }
+        return statement;
+    }
+
+    NodeIdentifier parseStatement(Lexer::TokenStream &ts)
+    {
+        auto statement = parseInlineStatement(ts);
         checkToken(ts.get(), Lexer::TokenType::SEMICOLON, ts);
         return statement;
     }
@@ -297,6 +315,28 @@ namespace Parser
         return addNode(node);
     }
 
+    NodeIdentifier parseFor(Lexer::TokenStream &ts)
+    {
+        auto forToken = ts.get();
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        std::optional<NodeIdentifier> initialiser = std::nullopt;
+        if (ts.peek().type != Lexer::TokenType::SEMICOLON)
+            initialiser = parseInlineStatement(ts);
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
+        std::optional<NodeIdentifier> condition = std::nullopt;
+        if (ts.peek().type != Lexer::TokenType::SEMICOLON)
+            condition = parseExpression(ts);
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::SEMICOLON, ts);
+        std::optional<NodeIdentifier> increment = std::nullopt;
+        if (ts.peek().type != Lexer::TokenType::PARENTHESIS_CLOSE)
+            increment = parseInlineStatement(ts);
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        auto body = parseMultiBlock(ts);
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::KEYWORD_ENDFOR, ts);
+        auto node = std::make_shared<NodeFor>(forToken, initialiser, condition, increment, body);
+        return addNode(node);
+    }
+
     NodeIdentifier parseBlock(Lexer::TokenStream &ts)
     {
         Lexer::Token t = ts.peek();
@@ -318,6 +358,9 @@ namespace Parser
             break;
         case Lexer::TokenType::KEYWORD_PRAGMA:
             block = parsePragma(ts);
+            break;
+        case Lexer::TokenType::KEYWORD_FOR:
+            block = parseFor(ts);
             break;
         default:
             block = parseStatement(ts);
