@@ -37,3 +37,4 @@ test 'extern int facto(int); int f_c(void) { printf("facto(5)=%d\n", facto(5)); 
 # Test type casting
 test '' 'function main() return uint32 is return uint32(uint8(-1)); endfunction' 255
 test '' 'function main() return uint32 is return uint32(uint8(5) + 3); endfunction' 8
+test '' 'function main () return int32 is int32 res := 1; int32 x := 5; for (int32 i := 0; i < x; i := i + 1) res := res * 2; endfor return res; endfunction' 32

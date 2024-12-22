@@ -224,7 +224,7 @@ int main(int argc, char **argv)
         }
     }
 
-    visitor::mapVisitor forVisitor = visitor::mapVisitor(mappingFunction::desugarFor);
+    visitor::mapVisitor forVisitor = visitor::mapVisitor([](Parser::Node & node){return mappingFunction::desugarFor(node);});
     for (auto &node : nodes)
     {
         node->accept(forVisitor);

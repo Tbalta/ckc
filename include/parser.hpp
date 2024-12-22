@@ -154,6 +154,7 @@ namespace Parser
     public:
         std::vector<NodeIdentifier> blocks;
         NodeMultiBlock(std::vector<NodeIdentifier> blocks) : blocks(blocks){};
+        NodeMultiBlock() = default;
         virtual void accept(Visitor &v)
         {
             NodeBlock::accept(v);
@@ -182,6 +183,7 @@ namespace Parser
         std::optional<NodeIdentifier> elseStatement;
         NodeIf(Lexer::Token token, Lexer::Token fiToken, NodeIdentifier condition, NodeIdentifier thenStatement, std::optional<NodeIdentifier> elseStatement)
             : NodeBlock(token), fiToken(fiToken), condition(condition), thenStatement(thenStatement), elseStatement(elseStatement){};
+        NodeIf() = default;
         void accept(Visitor &v) override
         {
             NodeBlock::accept(v);
@@ -394,6 +396,7 @@ namespace Parser
         std::optional<NodeIdentifier> increment;
         NodeIdentifier body;
         NodeFor(Lexer::Token token, std::optional<NodeIdentifier> initialiser, std::optional<NodeIdentifier> condition, std::optional<NodeIdentifier> increment, NodeIdentifier body) : NodeBlock(token), initialiser(initialiser), condition(condition), increment(increment), body(body){};
+        NodeFor() = default;
         void accept(Visitor &v) override
         {
             NodeBlock::accept(v);

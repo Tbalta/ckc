@@ -7,3 +7,7 @@ main
 toy*
 *.kc
 llvm-project
+gkc
+unittest
+*.llc
+*.out

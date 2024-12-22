@@ -5,7 +5,12 @@
 namespace mappingFunction
 {
     template <typename T>
-    bool isTypeOf(Parser::Node &node);
+    bool isTypeOf(Parser::Node &node)
+    {
+        return dynamic_cast<T *>(&node) != nullptr;
+    }
     
     Parser::NodeIdentifier desugarFor(Parser::Node &node);
+    Parser::NodeIdentifier desugarFor(Parser::NodeIdentifier node);
+    // 
 }
