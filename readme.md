@@ -18,7 +18,7 @@ The goal of this project is to create a language that is easy to use, with a lot
 Ideally, the language should be powerful enough to be used to write a small operating system.
 # Compilation
 ## Dependancies
-- [llvm=10.0.0]
+- [llvm=15.0.0]
 - [googletest=1.10.0]
 - [libgmock-dev]
 # How ?

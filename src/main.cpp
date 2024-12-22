@@ -10,6 +10,7 @@
 #include "visitor/typeVisitor.hpp"
 #include "visitor/rangeVisitor.hpp"
 #include "visitor/unreachableVisitor.hpp"
+#include "visitor/mapVisitor.hpp"
 #include "exception/type_error.hpp"
 #include "exception/function_error.hpp"
 
@@ -27,6 +28,7 @@
 #include <getopt.h>
 
 #include "colors.hpp"
+#include "mappingFunction.hpp"
 
 using namespace llvm;
 int main(int argc, char **argv)
@@ -153,12 +155,6 @@ int main(int argc, char **argv)
         }
         if (nodeMain.get() == nullptr)
             break;
-        visitor::PrintVisitor pv;
-        if (!silent)
-        {
-            nodeMain.get()->accept(pv);
-            std::cout << std::endl;
-        }
         nodeMain.get()->accept(pragmaVisitor);
         try
         {
@@ -197,10 +193,8 @@ int main(int argc, char **argv)
             e.new_declaration->accept(rv);
             std::cerr << "New declaration is here:" << std::endl;
             ts.printLine(rv.firstToken.value().line);
-
-            
         }
-        
+
         nodes.push_back(nodeMain);
     }
     delete input;
@@ -211,8 +205,6 @@ int main(int argc, char **argv)
     }
     if (error)
         return 1;
-
-
 
     for (auto &node : nodes)
     {
@@ -232,9 +224,21 @@ int main(int argc, char **argv)
         }
     }
 
+    visitor::mapVisitor forVisitor = visitor::mapVisitor(mappingFunction::desugarFor);
+    for (auto &node : nodes)
+    {
+        node->accept(forVisitor);
+    }
+    visitor::PrintVisitor pv;
+    if (!silent)
+    {
+        for (auto &node : nodes)
+            node->accept(pv);
+        std::cout << std::endl;
+    }
+
     if (error)
         return 1;
-
 
     for (auto &node : nodes)
     {
