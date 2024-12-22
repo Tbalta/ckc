@@ -6,10 +6,9 @@
 
 namespace mappingFunction
 {
-    template <typename T>
-    bool isTypeOf(Parser::Node &node)
+    Parser::NodeIdentifier desugarFor(Parser::NodeIdentifier node)
     {
-        return dynamic_cast<T *>(&node) != nullptr;
+        return desugarFor(*node.get());
     }
 
     Parser::NodeIdentifier desugarFor(Parser::Node &node)
@@ -20,6 +19,7 @@ namespace mappingFunction
         Parser::NodeFor nodeFor = dynamic_cast<Parser::NodeFor &>(node);
 
         auto body = nodeFor.body.get<Parser::NodeMultiBlock>();
+        assert(body != nullptr);
         std::string label = "for_" + std::to_string(node.thisNode.id);
 
         auto namedBlock = std::make_shared<Parser::NodeBlockModifier>(Lexer::ModifierType::Named, label);
@@ -37,8 +37,6 @@ namespace mappingFunction
         assert(nodeFor.token.has_value());
         auto gotoNode = std::make_shared<Parser::NodeGoto>(label);
         body->blocks.push_back(addNode(gotoNode));
-
-
 
         // Wrap body in if block if condition exists
         if (nodeFor.condition.has_value())
