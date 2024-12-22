@@ -39,6 +39,7 @@ TEST_F(MappingFunctionTest, desugarFor_ShouldReturnNodeInIf) {
     ASSERT_TRUE(ifNode != nullptr);
     ASSERT_EQ(2, ifNode->thenStatement.get<Parser::NodeMultiBlock>()->blocks.size());
     ASSERT_TRUE(ifNode->thenStatement.get<Parser::NodeMultiBlock>()->blocks[0].id == increment.id);
+    ASSERT_TRUE(ifNode->thenStatement.get<Parser::NodeMultiBlock>()->blocks[1].get<Parser::NodeGoto>() != nullptr);
 }
 
 TEST_F(MappingFunctionTest, desugarFor_ShouldReturnNodeNotInIf) {
@@ -55,4 +56,5 @@ TEST_F(MappingFunctionTest, desugarFor_ShouldReturnNodeNotInIf) {
     ASSERT_TRUE(body.id == result->blocks[1].id);
     ASSERT_EQ(2, result->blocks[1].get<Parser::NodeMultiBlock>()->blocks.size());
     ASSERT_TRUE(result->blocks[1].get<Parser::NodeMultiBlock>()->blocks[0].id == increment.id);
+    ASSERT_TRUE(result->blocks[1].get<Parser::NodeMultiBlock>()->blocks[1].get<Parser::NodeGoto>() != nullptr);
 }
