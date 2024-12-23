@@ -1,11 +1,16 @@
 #pragma once
 #include <set>
 #include <string>
-namespace SymbolTable
+#include "genericContext.hpp"
+#include "parser.hpp"
+
+namespace CKC
 {
-    void addSymbol(std::string name);
-    bool hasSymbol(std::string name);
-    void removeSymbol(std::string name);
-    std::string getUniqueName(std::string name);
+    class SymbolTable : public genericContext<std::string, Parser::NodeIdentifier>
+    {
+        public:
+        void removeSymbol(std::string name);
+        std::string getUniqueName(std::string name);
+    };
 
 }

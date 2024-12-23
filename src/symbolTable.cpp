@@ -1,31 +1,16 @@
 #include "symbolTable.hpp"
-namespace SymbolTable
+#include "parser.hpp"
+namespace CKC
 {
-    static std::set<std::string> symbolTable;
-    void addSymbol(std::string name)
-    {
-        symbolTable.insert(name);
-    }
 
-    bool hasSymbol(std::string name)
-    {
-        return symbolTable.find(name) != symbolTable.end();
-    }
-
-    void removeSymbol(std::string name)
-    {
-        symbolTable.erase(name);
-    }
-
-    std::string getUniqueName(std::string name)
+    std::string SymbolTable::getUniqueName(std::string name)
     {
         int i = 0;
-        while (hasSymbol(name + std::to_string(i)))
+        while (genericContext::has(name + std::to_string(i)))
         {
             i++;
         }
         auto newName = name + std::to_string(i);
-        addSymbol(newName);
         return newName;
     }
 }

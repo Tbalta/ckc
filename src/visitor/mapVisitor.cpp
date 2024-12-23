@@ -116,8 +116,6 @@ namespace visitor
         newNode = mapFunction(node);
     };
 
-    void mapVisitor::enterNode(Parser::Node &node) {};
-
     void mapVisitor::visitNodeCast(Parser::NodeCast &node)
     {
         newNode = mapFunction(node);
@@ -169,5 +167,9 @@ namespace visitor
         }
 
         newNode = mapFunction(node);
+    }
+
+    void mapVisitor::enterNode(Parser::Node &node)
+    {
     }
 }
