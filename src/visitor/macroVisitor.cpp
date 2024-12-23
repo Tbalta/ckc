@@ -60,6 +60,29 @@ namespace visitor
         }
     };
 
+    class findSymbolVisitor : public Parser::Visitor
+    {
+        public:
+        CKC::SymbolTable& symbolTable;
+        findSymbolVisitor (CKC::SymbolTable &symbolTable) : symbolTable(symbolTable){};
+
+        void visitNodeFunction(Parser::NodeFunction &node)
+        {
+            symbolTable.add(node.name, node.thisNode);
+        }
+
+        void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node)
+        {
+            symbolTable.add(node.name, node.thisNode);
+        }
+
+        void visitNodePartial(Parser::NodePartial &node)
+        {
+            symbolTable.add(node.name, node.thisNode);
+        }
+    };
+
+
     Parser::NodeIdentifier macroVisitor::createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall)
     {
         auto optionalPartialFunction = partialFunctionContext.get(partialCall.name);
@@ -69,27 +92,28 @@ namespace visitor
     
         auto partialFunction = optionalPartialFunction.value().get<Parser::NodePartial>();
         assert(partialFunction != nullptr);
-
-
         
-        
-        std::map<std::string, std::string> variableReplacements;
         for (auto &arg : partialFunction->arguments)
         {
-            variableReplacements[arg.second] = SymbolTable::getUniqueName(partialFunction->name + "_" + arg.second + "_");
         }
 
         // Create new variable declaration for every argument
+        std::map<std::string, std::string> variableReplacements;
         std::vector<Parser::NodeIdentifier> blocks;
         for (auto i = 0; i < partialFunction->arguments.size(); i++)
         {
             auto arg = partialFunction->arguments[i];
+            auto name = symbolTable.getUniqueName(partialFunction->name + "_" + arg.second + "_");
+            variableReplacements[arg.second] = name;
+
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
                 partialCall.firstToken.value(),
                 arg.first,
-                variableReplacements[arg.second],
+                name,
                 std::move(partialCall.arguments[i]));
-            blocks.push_back(Parser::addNode(newVariable));
+            auto argumentNodeId = Parser::addNode(newVariable);
+            symbolTable.add(name, argumentNodeId);
+            blocks.push_back(argumentNodeId);
         }
 
         // Add the linked function call
@@ -145,13 +169,16 @@ namespace visitor
             copyVisitor copyVisitor;
             closureExpression->accept(copyVisitor);
             assert(copyVisitor.newCopy.id != -1);
-            auto name = SymbolTable::getUniqueName(node.name + "_");
+            auto name = symbolTable.getUniqueName(node.name + "_");
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
                 node.firstToken.value(),
                 closureExpression.get<Parser::NodeExpression>()->type,
                 name,
                 copyVisitor.newCopy);
-            blocks.push_back(Parser::addNode(newVariable));
+            
+            auto newVariableID = Parser::addNode(newVariable);
+            symbolTable.add(name, newVariableID);
+            blocks.push_back(newVariableID);
             closureVariables[closureExpression] = name;
         }
 
@@ -191,13 +218,20 @@ namespace visitor
     void macroVisitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
     {
         partialFunctionContext.enterScope();
+        symbolTable.enterScope();
+        findSymbolVisitor findSymbolVisitor(symbolTable);
+        node.accept(findSymbolVisitor);
         for (auto &block : node.blocks)
         {
             block->accept(*this);
             block = newNode;
         }
+        symbolTable.exitScope();
         partialFunctionContext.exitScope();
         newNode = node.thisNode;
     }
 
+    void macroVisitor::enterNode(Parser::Node &node)
+    {
+    }
 }

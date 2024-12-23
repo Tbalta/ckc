@@ -1,15 +1,15 @@
 #pragma once
 #include <optional>
 #include <map>
-
+#include <vector>
 template <typename Index, typename Element>
 class genericContext : private std::vector<std::map<Index, Element>>
 {
+    
     public:
     // std::vector<std::map<Index, Element>> contextStack;
     void enterScope()
     {
-        // /*contextStack.*/push_back(std::map<Index, Element>());
         std::vector<std::map<Index, Element>>::push_back(std::map<Index, Element>());
     }
     void exitScope()
@@ -33,14 +33,26 @@ class genericContext : private std::vector<std::map<Index, Element>>
     {
         return get(index).has_value();
     }
+    
     void add(Index index, Element element)
     {
-        // /*contextStack*/.back()[index] = element;
         std::vector<std::map<Index, Element>>::back()[index] = element;
     }
+
+    void remove(Index index)
+    {
+        for (auto it = std::vector<std::map<Index, Element>>::rbegin(); it != std::vector<std::map<Index, Element>>::rend(); it++)
+        {
+            if (it->find(index) != it->end())
+            {
+                it->erase(index);
+                return;
+            }
+        }
+    }
+
     genericContext()
     {
-        // /*contextStack.*/push_back(std::map<Index, Element>());
         std::vector<std::map<Index, Element>>::push_back(std::map<Index, Element>());
     }
     
