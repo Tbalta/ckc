@@ -9,10 +9,11 @@ namespace visitor
     private:
         int currentLine = 0;
         bool newLine = true;
+        int level = 0;
         std::ostream &out;
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
-        void visitBinOperator(Parser::NodeBinOperator &node) override;
+        void visitNodeBinOperator(Parser::NodeBinOperator &node) override;
         void visitNode(Parser::Node &node) override;
         void visitNodeNumber(Parser::NodeNumber &node) override;
         void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) override;
@@ -29,6 +30,9 @@ namespace visitor
         void printNewLine(std::optional<Lexer::Token> token);
         void visitNodeCast(Parser::NodeCast &node) override;
         void visitNodePartial(Parser::NodePartial &node) override;
+        void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;
+        void visitNodeMultiBlock(Parser::NodeMultiBlock &node) override;
+
 
     public:
         PrintVisitor() : out(std::cout){};

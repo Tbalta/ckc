@@ -9,72 +9,6 @@
 static bool parserError = false;
 namespace Parser
 {
-
-
-    void Visitor::visitNodeIf(Parser::NodeIf &node){
-        node.condition.get()->accept(*this);
-        node.thenStatement.get()->accept(*this);
-        if (node.elseStatement.has_value())
-            node.elseStatement.value().get()->accept(*this);
-    };
-
-    void Visitor::visitNodeGoto(Parser::NodeGoto &node){
-
-    };
-    
-    void Visitor::visitBinOperator(Parser::NodeBinOperator &node){
-        node.left.get()->accept(*this);
-        node.right.get()->accept(*this);
-    };
-
-    void Visitor::visitNode(Parser::Node &node){};
-    void Visitor::visitNodeNumber(Parser::NodeNumber &node){};
-    void Visitor::visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node){
-        if (node.value.has_value())
-            node.value.value().get()->accept(*this);
-    };
-    void Visitor::visitNodeVariableAssignment(Parser::NodeVariableAssignment &node){
-        node.value.get()->accept(*this);
-    };
-    void Visitor::visitNodeBlockModifier(Parser::NodeBlockModifier &node){};
-    void Visitor::visitNodeText(Parser::NodeText &node){};
-    void Visitor::visitNodeReturn(Parser::NodeReturn &node){
-        if (node.value.has_value())
-            node.value.value().get()->accept(*this);
-    };
-    void Visitor::visitNodeUnaryOperator(Parser::NodeUnaryOperator &node){};
-    void Visitor::visitNodeFunction(Parser::NodeFunction &node){
-        if (node.body.has_value())
-            node.body.value().get()->accept(*this);
-    };
-    void Visitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node){
-        for (auto &arg : node.arguments)
-        {
-            arg.get()->accept(*this);
-        }
-    };
-    void Visitor::visitNodePragma(Parser::NodePragma &node){};
-    void Visitor::enterNode(Parser::Node &node){};
-    void Visitor::visitNodeCast(Parser::NodeCast &node){};
-    void Visitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
-    {
-        for (auto &block : node.blocks)
-        {
-            block->accept(*this);
-        }
-    }
-
-     void Visitor::visitNodeFor(Parser::NodeFor &node)
-     {
-        if (node.initialiser.has_value())
-            node.initialiser.value()->accept(*this);
-        if (node.condition.has_value())
-            node.condition.value()->accept(*this);
-        if (node.increment.has_value())
-            node.increment.value()->accept(*this);
-        node.body->accept(*this);
-     }
-
     std::map<NodeIdentifierIndex, std::shared_ptr<Node>> nodes;
 
     NodeIdentifier addNode(std::shared_ptr<Node> node)
@@ -111,9 +45,6 @@ namespace Parser
         parserError = true;
         ts.unexpectedToken(t, reference);
         throw std::runtime_error("Unexpected token");
-        // while (ts.peek().type != Lexer::TokenType::TOKEN_EOF && ts.get().type != reference)
-        //     continue;
-        // return ts.peek().type != Lexer::TokenType::TOKEN_EOF;
     }
 
     // Check if the token is in the expected set.

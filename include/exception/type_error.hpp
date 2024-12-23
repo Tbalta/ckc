@@ -60,7 +60,7 @@ public:
         node = functionNode;
         auto function = functionNode.get<Parser::NodeFunctionCall>();
         msg = "No call match " + function->name + "(";
-        for (auto i = 0; i < function->arguments.size(); i++)
+        for (size_t i = 0; i < function->arguments.size(); i++)
         {
             auto arg = function->arguments[i];
             msg += arg.get<Parser::NodeExpression>()->type;

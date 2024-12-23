@@ -34,21 +34,21 @@ namespace mappingFunction
         if (nodeFor.increment.has_value())
             body->blocks.push_back(nodeFor.increment.value());
         
-        assert(nodeFor.token.has_value());
+        assert(nodeFor.firstToken.has_value());
         auto gotoNode = std::make_shared<Parser::NodeGoto>(label);
-        body->blocks.push_back(addNode(gotoNode));
+        body->blocks.push_back(Parser::addNode(gotoNode));
 
         // Wrap body in if block if condition exists
         if (nodeFor.condition.has_value())
         {
-            auto ifNode = std::make_shared<Parser::NodeIf>(nodeFor.token.value(), nodeFor.token.value(), nodeFor.condition.value(), nodeFor.body, std::nullopt);
+            auto ifNode = std::make_shared<Parser::NodeIf>(nodeFor.firstToken.value(), nodeFor.lastToken.value(), nodeFor.condition.value(), nodeFor.body, std::nullopt);
             ifNode->setSymbolName(label);
             nodeFor.body->breakFlowControl = true;
-            ifNode->modifier = addNode(namedBlock);
-            result.push_back(addNode(ifNode));
+            ifNode->modifier = Parser::addNode(namedBlock);
+            result.push_back(Parser::addNode(ifNode));
         } else {
             nodeFor.body->setSymbolName(label);
-            nodeFor.body.get<Parser::NodeMultiBlock>()->modifier = addNode(namedBlock);
+            nodeFor.body.get<Parser::NodeMultiBlock>()->modifier = Parser::addNode(namedBlock);
             result.push_back(nodeFor.body);
         }
 
@@ -56,5 +56,9 @@ namespace mappingFunction
         return addNode(std::make_shared<Parser::NodeMultiBlock>(result));
         
     }
+
+
+    
+
 
 }

@@ -17,7 +17,7 @@ namespace visitor
 
     void pragmaVisitor::visitNodeGoto(Parser::NodeGoto &node) {}
 
-    void pragmaVisitor::visitBinOperator(Parser::NodeBinOperator &node) {}
+    void pragmaVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node) {}
     void pragmaVisitor::visitNode(Parser::Node &node) {}
     void pragmaVisitor::visitNodeNumber(Parser::NodeNumber &node) {}
 

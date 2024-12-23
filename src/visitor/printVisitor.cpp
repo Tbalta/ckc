@@ -4,7 +4,7 @@ namespace visitor
 {
     void PrintVisitor::enterNode(Parser::Node &node)
     {
-        printNewLine(node.token);
+        printNewLine(node.firstToken);
     }
 
     void PrintVisitor::printNewLine(std::optional<Lexer::Token> token)
@@ -24,11 +24,12 @@ namespace visitor
         out << std::endl;
         if (newLineNumber != currentLine)
         {
-            out << std::right << std::setfill(' ') << std::setw(4) << newLineNumber << std::left << std::setw(5) << " |";
+            out << std::right << std::setfill(' ') << std::setw(4) << newLineNumber << std::left << std::setw(2 + (5 * level)) << " |";
         } else
         {
-            out << std::right << std::setfill(' ') << std::setw(4) << " " << std::left << std::setw(5) << " |";
+            out << std::right << std::setfill(' ') << std::setw(4) << " " << std::left << std::setw(2 + (5 * level)) << " |";
         }
+
 
         currentLine = newLineNumber;
     }
@@ -55,7 +56,7 @@ namespace visitor
         out << "goto " << node.label;
         newLine = true;
     }
-    void PrintVisitor::visitBinOperator(Parser::NodeBinOperator &node)
+    void PrintVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
     {
         out << "(";
         node.left.get()->accept(*this);
@@ -132,6 +133,10 @@ namespace visitor
             out << " return " << node.returnType.value();
         if (node.body.has_value())
             node.body.value().get()->accept(*this);
+        
+        printNewLine(currentLine);
+        out << "endFunction";
+        printNewLine(currentLine);
     }
 
     void PrintVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
@@ -171,6 +176,28 @@ namespace visitor
             out << (node.arguments.end() - 1)->first << " " << (node.arguments.end() - 1)->second;
         out << ")";
     };
+
+    void PrintVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
+    {
+        level++;
+        for (auto &block : node.blocks)
+        {
+            newLine = true;
+            block.get()->accept(*this);
+        }
+        level--;
+    }
+
+    void PrintVisitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
+    {
+        level++;
+        for (auto &block : node.blocks)
+        {
+            block.get()->accept(*this);
+        }
+        level--;
+    }
+
 
 
 }

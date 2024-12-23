@@ -12,7 +12,7 @@ namespace Parser
     }
 
     void Visitor::visitNodeGoto(Parser::NodeGoto &node) {}
-    void Visitor::visitBinOperator(Parser::NodeBinOperator &node)
+    void Visitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
     {
         node.left->accept(*this);
         node.right->accept(*this);
@@ -74,6 +74,17 @@ namespace Parser
             block.get()->accept(*this);
         }
     }
+
+    void Visitor::visitNodeFor(Parser::NodeFor &node)
+     {
+        if (node.initialiser.has_value())
+            node.initialiser.value()->accept(*this);
+        if (node.condition.has_value())
+            node.condition.value()->accept(*this);
+        if (node.increment.has_value())
+            node.increment.value()->accept(*this);
+        node.body->accept(*this);
+     }
 
     void Visitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
     {
@@ -148,7 +159,7 @@ namespace Parser
     void NodeBinOperator::accept(Visitor &v)
     {
         NodeExpression::accept(v);
-        v.visitBinOperator(*this);
+        v.visitNodeBinOperator(*this);
     };
 
     void NodeUnaryOperator::accept(Visitor &v)

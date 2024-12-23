@@ -90,7 +90,7 @@ namespace Lexer
         {TokenType::KEYWORD_RETURN, "return"},
         {TokenType::KEYWORD_FUNCTION, "function"},
         {TokenType::KEYWORD_ENDFUNCTION, "endfunction"},
-        {TokenType::KEYWORD_FUNCTION, "partial"},
+        {TokenType::KEYWORD_PARTIAL, "partial"},
         {TokenType::KEYWORD_FOR, "for"},
         {TokenType::KEYWORD_ENDFOR, "endfor"},
 

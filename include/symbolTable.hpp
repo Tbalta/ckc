@@ -1,4 +1,6 @@
+#pragma once
 #include <set>
+#include <string>
 namespace SymbolTable
 {
     void addSymbol(std::string name);

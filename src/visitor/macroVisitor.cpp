@@ -1,7 +1,7 @@
 #include "visitor/macroVisitor.hpp"
 #include "visitor/copyVisitor.hpp"
 #include "symbolTable.hpp"
-
+#include <cassert>
 namespace visitor
 {
     class renameVisitor : public Parser::Visitor
@@ -19,16 +19,19 @@ namespace visitor
     class findClosure : public Parser::Visitor
     {
     private:
-        bool inClosure = false;
 
     public:
+        bool inClosure = false;
         std::set<std::string> constantVariables;
         std::set<Parser::NodeIdentifier> closureExpressions;
-
+        findClosure(std::set<std::string> constantVariables) : constantVariables(constantVariables) {}
+        findClosure() = default;
         void visitNodeBinOperator(Parser::NodeBinOperator &node)
         {
+            inClosure = false;
             node.left->accept(*this);
             auto leftClosure = inClosure;
+            inClosure = false;
             node.right->accept(*this);
             auto rightClosure = inClosure;
 
@@ -59,13 +62,17 @@ namespace visitor
 
     Parser::NodeIdentifier macroVisitor::createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall)
     {
-        auto partialFunctionTest = partialFunctionContext.get(partialCall.name);
-        if (!partialFunctionTest.has_value())
+        auto optionalPartialFunction = partialFunctionContext.get(partialCall.name);
+        assert(optionalPartialFunction.has_value());
+        if (!optionalPartialFunction.has_value())
             return partialCall.thisNode;
+    
+        auto partialFunction = optionalPartialFunction.value().get<Parser::NodePartial>();
+        assert(partialFunction != nullptr);
 
-        auto partialFunction = partialFunctionTest.value().get<Parser::NodePartial>();
-        auto linkedCall = partialFunction->linkedFunction;
 
+        
+        
         std::map<std::string, std::string> variableReplacements;
         for (auto &arg : partialFunction->arguments)
         {
@@ -88,6 +95,7 @@ namespace visitor
         // Add the linked function call
         renameVisitor renameVisitor(variableReplacements);
         copyVisitor copyVisitor;
+        auto linkedCall = partialFunction->linkedFunction;
         linkedCall->accept(copyVisitor);
         linkedCall = copyVisitor.newCopy;
 
@@ -96,11 +104,11 @@ namespace visitor
 
         // Create new block
         auto newBlock = std::make_shared<Parser::NodeMultiBlockExpression>(blocks);
-        auto newNode = Parser::addNode(newBlock);
-        newNode->firstToken = partialCall.firstToken;
-        newNode->lastToken = partialCall.lastToken;
-        newNode->accept(*this);
-        return newNode;
+        auto result = Parser::addNode(newBlock);
+        result->firstToken = partialCall.firstToken;
+        result->lastToken = partialCall.lastToken;
+        result->accept(*this);
+        return result;
     }
 
     void macroVisitor::visitNodePartial(Parser::NodePartial &node)
@@ -108,19 +116,38 @@ namespace visitor
         if (partialFunctionContext.has(node.name))
             throw std::runtime_error("Partial function " + node.name + " already defined");
 
+
         partialFunctionContext.add(node.name, node.thisNode);
-        findClosure findClosure;
-        node.linkedFunction->accept(findClosure);
+        
+        std::set<std::string> constantVariables;
+        for (auto &arg : node.arguments)
+        {
+            constantVariables.insert(arg.second);
+        }
+
+        auto linkedFunction = node.linkedFunction.get<Parser::NodeFunctionCall>();
+        
+        findClosure findClosure(constantVariables);
+        for (auto &arg : linkedFunction->arguments)
+        {
+            findClosure.inClosure = false;
+            arg->accept(findClosure);
+            if (findClosure.inClosure)
+                findClosure.closureExpressions.insert(arg);
+        }
+        
+
         // Create variable for every closure expression
         std::map<Parser::NodeIdentifier, std::string> closureVariables;
         std::vector<Parser::NodeIdentifier> blocks;
-        copyVisitor copyVisitor;
         for (auto &closureExpression : findClosure.closureExpressions)
         {
+            copyVisitor copyVisitor;
             closureExpression->accept(copyVisitor);
+            assert(copyVisitor.newCopy.id != -1);
             auto name = SymbolTable::getUniqueName(node.name + "_");
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
-                closureExpression->firstToken.value(),
+                node.firstToken.value(),
                 closureExpression.get<Parser::NodeExpression>()->type,
                 name,
                 copyVisitor.newCopy);
@@ -128,45 +155,49 @@ namespace visitor
             closureVariables[closureExpression] = name;
         }
 
-        // Insert blocks in parent
-        parent.get<Parser::NodeMultiBlock>()->blocks.insert(
-            parent.get<Parser::NodeMultiBlock>()->blocks.begin(),
-            blocks.begin(),
-            blocks.end());
-
         // Replace closure expressions by variables
         for (auto variable : closureVariables)
         {
             // Create variable load
             auto newVariable = std::make_shared<Parser::NodeText>(
                 variable.second,
-                variable.first->firstToken.value());
+                node.firstToken.value());
             newVariable->type = variable.first.get<Parser::NodeExpression>()->type;
             Parser::replaceNode(variable.first, Parser::addNode(newVariable));
         }
+
+        newNode = Parser::addNode(std::make_shared<Parser::NodeMultiBlock>(blocks));
     }
 
     // Find partial function call and replace by linked function call.
     void macroVisitor::visitNodeFunctionCall(Parser::NodeFunctionCall &node)
     {
         auto partialFunction = partialFunctionContext.get(node.name);
+        auto newID = node.thisNode;
         if (partialFunction.has_value())
         {
             auto newBlock = createNewBlockFromPartial(node);
-            Parser::replaceNode(node.thisNode, newBlock);
+            newID = newBlock;
         }
         for (auto &arg : node.arguments)
+        {
             arg->accept(*this);
+            arg = newNode;
+        }
+
+        newNode = newID;
     }
 
     void macroVisitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
     {
         partialFunctionContext.enterScope();
-        auto previousParent = parent;
-        parent = node.thisNode;
-        Visitor::visitNodeMultiBlock(node);
-        parent = previousParent;
+        for (auto &block : node.blocks)
+        {
+            block->accept(*this);
+            block = newNode;
+        }
         partialFunctionContext.exitScope();
+        newNode = node.thisNode;
     }
 
 }

@@ -157,6 +157,10 @@ endfunction
 }
 ```
 ## Partial function
+To avoid invisible side effects, function calls are not allowed in partial function.
+If they are implemented, ony function calls of "pure" function should be allowed.
+
+The use of simplified function declaration should be encouraged.
 
 ## Operators
 ### Arithmetic operators
