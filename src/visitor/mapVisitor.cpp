@@ -24,7 +24,7 @@ namespace visitor
         newNode = mapFunction(node);
     };
 
-    void mapVisitor::visitBinOperator(Parser::NodeBinOperator &node)
+    void mapVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
     {
         node.left.get()->accept(*this);
         node.left = newNode;
@@ -69,6 +69,7 @@ namespace visitor
     {
         newNode = mapFunction(node);
     };
+
     void mapVisitor::visitNodeReturn(Parser::NodeReturn &node)
     {
         if (node.value.has_value())
@@ -155,6 +156,17 @@ namespace visitor
 
         node.body->accept(*this);
         node.body = newNode;
+
+        newNode = mapFunction(node);
+    }
+
+    void mapVisitor::visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node)
+    {
+        for (auto &block : node.blocks)
+        {
+            block->accept(*this);
+            block = newNode;
+        }
 
         newNode = mapFunction(node);
     }

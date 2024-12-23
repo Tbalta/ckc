@@ -13,7 +13,7 @@ namespace visitor
 {
     class mapVisitor : public Parser::Visitor
     {
-    private:
+    protected:
         Parser::NodeIdentifier newNode;
         std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction = [](Parser::Node &node)
         { return node.thisNode; };
@@ -23,7 +23,7 @@ namespace visitor
         mapVisitor(std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction) : mapFunction(mapFunction) {};
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
-        void visitBinOperator(Parser::NodeBinOperator &node) override;
+        void visitNodeBinOperator(Parser::NodeBinOperator &node) override;
         void visitNode(Parser::Node &node) override;
         void visitNodeNumber(Parser::NodeNumber &node) override;
         void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) override;
@@ -39,5 +39,6 @@ namespace visitor
         void visitNodeCast(Parser::NodeCast &node) override;
         void visitNodeMultiBlock(Parser::NodeMultiBlock &node) override;
         void visitNodeFor(Parser::NodeFor &node) override;
+        void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;
     };
 }

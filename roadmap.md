@@ -13,9 +13,9 @@ block: Set of statements.
 ```bnf
 <entry> ::= <multi_block>
 <multi_block> ::= <block>*
-<block> ::= <block_modifier>* (<block_if> | <block_for> | <statement> | <pragma>)
+<block> ::= <block_modifier>* (<block_if> | <block_for> | <statement> | <pragma> | <function_def>)
 <statement> ::= <inline_statement> ";"
-<inline_statement> ::= <variable_declaration> | <assignment> | <goto> | <return>
+<inline_statement> ::= <variable_declaration> | <assignment> | <goto> | <return> | <partial_function>
 
 
 <number> ::= [-][0-9][0-9_]*
@@ -36,7 +36,11 @@ block: Set of statements.
 <block_modifier> ::= <named_block>
 <named_block> ::= "#" <identifier>
 
-<function_def> ::= "function" <identifier> "(" <function_parameter> ")"  [return <type>] "is" <multi_block> "endfunction"
+<function_definition> ::= "function" <identifier> "(" <function_parameter> ")"  (<complete_function_definition> | <simplified_function_definition>)
+<complete_function_definition> ::= "return" <type> "is" <multi_block> "endfunction"
+<simplified_function_definition> ::= "is" <function_call> ";"
+
+
 <partial_function> ::= "partial" <identifier> "(" <function_parameter> ")" is <function_call>
 
 <function_parameter> ::= (<type> <identifier> ("," <type> <identifier>)*)?

@@ -1,10 +1,10 @@
 #pragma once
 #include "../parser.hpp"
 #include "../genericContext.hpp"
-
+#include "mapVisitor.hpp"
 namespace visitor
 {
-    class macroVisitor : public Parser::Visitor
+    class macroVisitor : public visitor::mapVisitor
     {
     public:
         void visitNodePartial(Parser::NodePartial &node) override;
@@ -15,6 +15,5 @@ namespace visitor
     private:
         genericContext<std::string, Parser::NodeIdentifier> partialFunctionContext;
         Parser::NodeIdentifier createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall);
-        Parser::NodeIdentifier parent;
     }; 
 }

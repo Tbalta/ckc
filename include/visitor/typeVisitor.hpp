@@ -21,7 +21,7 @@ class typeVisitor : public Parser::Visitor
     public:
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
-        void visitBinOperator(Parser::NodeBinOperator &node) override;
+        void visitNodeBinOperator(Parser::NodeBinOperator &node) override;
         void visitNode(Parser::Node &node) override;
         void visitNodeNumber(Parser::NodeNumber &node) override;
         void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) override;
@@ -33,8 +33,8 @@ class typeVisitor : public Parser::Visitor
         void visitNodeFunction(Parser::NodeFunction &node) override;
         void visitNodeFunctionCall(Parser::NodeFunctionCall &node) override;
         void visitNodePragma(Parser::NodePragma &node) override;
-        void visitBinOperatorBoolean(Parser::NodeBinOperator &node);
-        void visitBinOperatorComparison(Parser::NodeBinOperator &node);
+        void visitNodeBinOperatorBoolean(Parser::NodeBinOperator &node);
+        void visitNodeBinOperatorComparison(Parser::NodeBinOperator &node);
         void visitNodeCast(Parser::NodeCast &node) override;
         void visitNodePartial(Parser::NodePartial &node) override;
         void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;

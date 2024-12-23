@@ -114,16 +114,6 @@ int main(int argc, char **argv)
     auto RM = Optional<llvm::Reloc::Model>();
     auto TargetMachine = std::shared_ptr<llvm::TargetMachine>(Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM));
 
-    // if (!file.is_open())
-    // {
-    //     std::cout << "Could not open file: " << input << std::endl;
-    //     return 1;
-    // }
-    if (input == nullptr)
-    {
-        std::cout << "No input file" << std::endl;
-        return 1;
-    }
     Lexer::TokenStream ts(*input, inputFileName);
     auto contextProvider = Context::ContextProvider::getInstance();
 
@@ -204,13 +194,6 @@ int main(int argc, char **argv)
             ts.highlightMultiplesTokens(std::vector<std::pair<Lexer::Token, Lexer::Token>>{{rv.firstToken.value(), rv.lastToken.value()}});
         }
         nodeMain.get()->accept(macroVisitor);
-        visitor::PrintVisitor pv;
-        if (!silent)
-        {
-            nodeMain.get()->accept(pv);
-            std::cout << std::endl;
-        }
-        
         nodes.push_back(nodeMain);
     }
     delete input;

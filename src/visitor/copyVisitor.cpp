@@ -23,7 +23,7 @@ namespace visitor
             newCopy=Parser::addNode(newNode);
         }
 
-        void copyVisitor::visitBinOperator(Parser::NodeBinOperator &node)
+        void copyVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
         {
             auto newNode=node.clone();
             newNode->left->accept(*this);

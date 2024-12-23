@@ -32,7 +32,7 @@ namespace visitor
     {
     }
 
-    void typeVisitor::visitBinOperatorBoolean(Parser::NodeBinOperator &node)
+    void typeVisitor::visitNodeBinOperatorBoolean(Parser::NodeBinOperator &node)
     {
         std::string leftType = node.left.get<Parser::NodeExpression>()->type;
         std::string rightType = node.right.get<Parser::NodeExpression>()->type;
@@ -42,7 +42,7 @@ namespace visitor
         lastType = "bool";
     }
 
-    void typeVisitor::visitBinOperatorComparison(Parser::NodeBinOperator &node)
+    void typeVisitor::visitNodeBinOperatorComparison(Parser::NodeBinOperator &node)
     {
         std::string leftType = node.left.get<Parser::NodeExpression>()->type;
         std::string rightType = node.right.get<Parser::NodeExpression>()->type;
@@ -52,16 +52,16 @@ namespace visitor
         lastType = "bool";
     }
 
-    void typeVisitor::visitBinOperator(Parser::NodeBinOperator &node)
+    void typeVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
     {
         std::string hint = hintType;
         hintType = "number";
         node.left->accept(*this);
         node.right->accept(*this);
         if (node.isBooleanOperator())
-            return visitBinOperatorBoolean(node);
+            return visitNodeBinOperatorBoolean(node);
         if (node.isComparisonOperator())
-            return visitBinOperatorComparison(node);
+            return visitNodeBinOperatorComparison(node);
 
         std::string leftType = node.left.get<Parser::NodeExpression>()->type;
         std::string rightType = node.right.get<Parser::NodeExpression>()->type;

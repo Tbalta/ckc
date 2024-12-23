@@ -22,7 +22,11 @@ namespace visitor
         enterBlock();
         node.thenStatement.get()->accept(*this);
         exitBlock();
+        bool mergeReachable = !node.thenStatement->breakFlowControl || (node.elseStatement.has_value() && !node.elseStatement.value()->breakFlowControl);
         
+
+
+
         if (!node.thenStatement->breakFlowControl)
         {
             Builder->CreateBr(mergeBB);
@@ -40,9 +44,11 @@ namespace visitor
             {
                 Builder->CreateBr(mergeBB);
             }
+        } else if (mergeReachable)
+        {
+            Builder->CreateBr(mergeBB);
         }
 
-        bool mergeReachable = !node.thenStatement->breakFlowControl || (node.elseStatement.has_value() && !node.elseStatement.value()->breakFlowControl);
         if (mergeReachable)
         {
             Builder->GetInsertBlock()->getParent()->getBasicBlockList().push_back(mergeBB);
@@ -61,7 +67,7 @@ namespace visitor
         Builder->CreateBr(block);
         Builder->CreateUnreachable();
     }
-    void llvmVisitor::visitBinOperator(Parser::NodeBinOperator &node)
+    void llvmVisitor::visitNodeBinOperator(Parser::NodeBinOperator &node)
     {
         if (node.isLazyOperator())
             return visitLazyBinOperator(node);
@@ -222,9 +228,11 @@ namespace visitor
     void llvmVisitor::visitNodeVariableAssignment(Parser::NodeVariableAssignment &node)
     {
         auto variable = contextProvider.getVariable(node.name);
+        assert(variable.value != nullptr);
         if (variable.value == nullptr)
         {
-            LogError("Unknown variable name");
+            std::string msg = "Unknown variable name " + node.name;
+            LogError(msg.c_str());
             return;
         }
         currentType = variable.type;
@@ -254,9 +262,11 @@ namespace visitor
     {
 
         auto alloca = contextProvider.getVariable(node.name).value;
+        assert(alloca != nullptr);
         if (alloca == nullptr)
         {
-            LogError("Unknown variable name");
+            std::string msg = "Unknown variable name " + node.name;
+            LogError(msg.c_str());
             return;
         }
         lastValue = Builder->CreateLoad(alloca->getAllocatedType(), alloca, node.name.c_str());

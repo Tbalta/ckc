@@ -11,7 +11,7 @@ namespace visitor
     public:
         void visitNodeIf(Parser::NodeIf &node) override;
         void visitNodeGoto(Parser::NodeGoto &node) override;
-        void visitBinOperator(Parser::NodeBinOperator &node) override;
+        void visitNodeBinOperator(Parser::NodeBinOperator &node) override;
         void visitNode(Parser::Node &node) override;
         void visitNodeNumber(Parser::NodeNumber &node) override;
         void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) override;

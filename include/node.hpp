@@ -32,7 +32,7 @@ namespace Parser
     public:
         virtual void visitNodeIf(Parser::NodeIf &node);
         virtual void visitNodeGoto(Parser::NodeGoto &node);
-        virtual void visitBinOperator(Parser::NodeBinOperator &node);
+        virtual void visitNodeBinOperator(Parser::NodeBinOperator &node);
         virtual void visitNode(Parser::Node &node);
         virtual void visitNodeNumber(Parser::NodeNumber &node);
         virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node);
@@ -96,8 +96,8 @@ namespace Parser
         std::optional<std::string> symbol_name;
         std::optional<Lexer::Token> firstToken;
         std::optional<Lexer::Token> lastToken;
+        bool breakFlowControl = false;
         NodeIdentifier thisNode;
-
         Node() : firstToken(std::nullopt), lastToken(std::nullopt) {}
         Node(Lexer::Token token) : firstToken(token), lastToken(token){};
         Node(Lexer::Token firstToken, Lexer::Token lastToken) : firstToken(firstToken), lastToken(lastToken){};
@@ -176,6 +176,7 @@ namespace Parser
     class NodeIf : public NodeBlock
     {
     public:
+        Lexer::Token fiToken;
         NodeIdentifier condition;
         NodeIdentifier thenStatement;
         std::optional<NodeIdentifier> elseStatement;

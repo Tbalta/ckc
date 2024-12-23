@@ -20,22 +20,6 @@ namespace Parser
 
     bool hasError();
 
-    class NodeFor : public NodeBlock
-    {
-    public:
-        std::optional<NodeIdentifier> initialiser;
-        std::optional<NodeIdentifier> condition;
-        std::optional<NodeIdentifier> increment;
-        NodeIdentifier body;
-        NodeFor(Lexer::Token token, std::optional<NodeIdentifier> initialiser, std::optional<NodeIdentifier> condition, std::optional<NodeIdentifier> increment, NodeIdentifier body) : NodeBlock(token), initialiser(initialiser), condition(condition), increment(increment), body(body){};
-        NodeFor() = default;
-        void accept(Visitor &v) override
-        {
-            NodeBlock::accept(v);
-            v.visitNodeFor(*this);
-        };
-    };
-
     NodeIdentifier parseStatement(Lexer::TokenStream &ts);
     NodeIdentifier parseExpression(Lexer::TokenStream &ts);
     NodeIdentifier parseBlock(Lexer::TokenStream &ts);

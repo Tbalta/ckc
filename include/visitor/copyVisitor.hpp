@@ -10,7 +10,7 @@ namespace visitor
         Parser::NodeIdentifier newCopy;
         void visitNodeIf(Parser::NodeIf &node);
         void visitNodeGoto(Parser::NodeGoto &node);
-        void visitBinOperator(Parser::NodeBinOperator &node);
+        void visitNodeBinOperator(Parser::NodeBinOperator &node);
         void visitNode(Parser::Node &node);
         void visitNodeNumber(Parser::NodeNumber &node);
         void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node);
