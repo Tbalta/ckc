@@ -279,7 +279,7 @@ namespace visitor
     void typeVisitor::visitNodeMultiBlock(Parser::NodeMultiBlock &node)
     {
         partialContext.enterScope();
-        Visitor::visitNodeMultiBlock(node);
+        baseVisitor::visitNodeMultiBlock(node);
         for (auto &overload : partialContext.getCurrentContext())
             contextProvider.removeOverload(overload.second, overload.first);
         partialContext.exitScope();

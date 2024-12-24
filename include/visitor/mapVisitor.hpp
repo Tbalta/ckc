@@ -1,13 +1,15 @@
-/*
- * desugaringVisitor.hpp
- * This visitor replaces for loops by if/goto
+/**
+ * @file mapVisitor.hpp
+ * @brief Replace each node by the result of mapFunction
+ * @version 0.1
+ * @date 2024-12-24
  */
-
 #pragma once
 
-#include "../parser.hpp"
 #include <functional>
 #include <vector>
+#include "visitor/baseVisitor.hpp"
+
 
 namespace visitor
 {
@@ -40,5 +42,6 @@ namespace visitor
         void visitNodeMultiBlock(Parser::NodeMultiBlock &node) override;
         void visitNodeFor(Parser::NodeFor &node) override;
         void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) override;
+        void visitNodePartial(Parser::NodePartial &node) override;
     };
 }

@@ -1,18 +1,24 @@
+/**
+ * @file llvmVisitor.hpp
+ * @brief Generate LLVM IR from AST
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
 
 #include <llvm/IR/Value.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include "../genericContext.hpp"
-#include "../parser.hpp"
 #include "../contextProvider.hpp"
+#include "visitor/baseVisitor.hpp"
 
 using namespace llvm;
 namespace visitor
 {
     void LogError(const char *Str);
 
-    class llvmVisitor : public Parser::Visitor
+    class llvmVisitor : public baseVisitor
     {
     private:
         std::shared_ptr<LLVMContext> context;

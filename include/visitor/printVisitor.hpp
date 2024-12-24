@@ -1,10 +1,18 @@
+/**
+ * @file printVisitor.hpp
+ * @brief Print the AST
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
-#include "../parser.hpp"
+
 #include <iostream>
 #include <sstream>
+#include "visitor/baseVisitor.hpp"
+
 namespace visitor
 {
-    class PrintVisitor : public Parser::Visitor
+    class PrintVisitor : public baseVisitor
     {
     private:
         int currentLine = 0;

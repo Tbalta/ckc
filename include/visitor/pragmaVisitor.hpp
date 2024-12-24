@@ -1,12 +1,18 @@
+/**
+ * @file pragmaVisitor.hpp
+ * @brief Set the correct node attributes from pragma
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
 
-#include "parser.hpp"
-
 #include "../genericContext.hpp"
+#include "visitor/baseVisitor.hpp"
+
 namespace visitor
 {
 
-    class pragmaVisitor : public Parser::Visitor
+    class pragmaVisitor : public baseVisitor
     {
     public:
         void visitNodeIf(Parser::NodeIf &node) override;

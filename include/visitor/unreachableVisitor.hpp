@@ -1,16 +1,18 @@
-/*
-* unreachableVisitor.hpp
-* This visitor reports unreachable code, and set 
-*/
+/**
+ * @file unreachableVisitor.hpp
+ * @brief Detect and report unreachable code, report node disrupting execution flow
+ * @version 0.1
+ * @date 2024-12-24
+ */
 
 #pragma once
 
-#include "../parser.hpp"
 #include <vector>
+#include "visitor/baseVisitor.hpp"
 
 namespace visitor
 {
-    class unreachableVisitor : public Parser::Visitor
+    class unreachableVisitor : public baseVisitor
     {
         private:
         public:
