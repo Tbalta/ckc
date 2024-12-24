@@ -1,9 +1,14 @@
+/**
+ * @file copyVisitor.hpp
+ * @brief Create a deep copy of the AST
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
-#include "node.hpp"
-
+#include "visitor/baseVisitor.hpp"
 namespace visitor
 {
-    class copyVisitor : public Parser::Visitor
+    class copyVisitor : public baseVisitor
     {
     private:
     public:

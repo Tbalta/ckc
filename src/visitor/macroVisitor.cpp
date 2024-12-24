@@ -4,7 +4,7 @@
 #include <cassert>
 namespace visitor
 {
-    class renameVisitor : public Parser::Visitor
+    class renameVisitor : public baseVisitor
     {
     public:
         std::map<std::string, std::string> variableReplacements;
@@ -16,7 +16,7 @@ namespace visitor
         renameVisitor(std::map<std::string, std::string> variableReplacements) : variableReplacements(variableReplacements) {}
     };
 
-    class findClosure : public Parser::Visitor
+    class findClosure : public baseVisitor
     {
     private:
 
@@ -60,7 +60,7 @@ namespace visitor
         }
     };
 
-    class findSymbolVisitor : public Parser::Visitor
+    class findSymbolVisitor : public baseVisitor
     {
         public:
         CKC::SymbolTable& symbolTable;

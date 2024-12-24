@@ -172,4 +172,11 @@ namespace visitor
     void mapVisitor::enterNode(Parser::Node &node)
     {
     }
+
+    void mapVisitor::visitNodePartial(Parser::NodePartial &node)
+    {
+        node.linkedFunction->accept(*this);
+        node.linkedFunction = newNode;
+        newNode = mapFunction(node);
+    }
 }

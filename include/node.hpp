@@ -30,26 +30,26 @@ namespace Parser
     class Visitor
     {
     public:
-        virtual void visitNodeIf(Parser::NodeIf &node);
-        virtual void visitNodeGoto(Parser::NodeGoto &node);
-        virtual void visitNodeBinOperator(Parser::NodeBinOperator &node);
-        virtual void visitNode(Parser::Node &node);
-        virtual void visitNodeNumber(Parser::NodeNumber &node);
-        virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node);
-        virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node);
-        virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node);
-        virtual void visitNodeText(Parser::NodeText &node);
-        virtual void visitNodeReturn(Parser::NodeReturn &node);
-        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node);
-        virtual void visitNodeFunction(Parser::NodeFunction &node);
-        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node);
-        virtual void visitNodePragma(Parser::NodePragma &node);
-        virtual void enterNode(Parser::Node &node);
-        virtual void visitNodeCast(Parser::NodeCast &node);
-        virtual void visitNodePartial(Parser::NodePartial &node);
-        virtual void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
-        virtual void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node);
-        virtual void visitNodeFor(Parser::NodeFor &node);
+        virtual void visitNodeIf(Parser::NodeIf &node) = 0;
+        virtual void visitNodeGoto(Parser::NodeGoto &node) = 0;
+        virtual void visitNodeBinOperator(Parser::NodeBinOperator &node) = 0;
+        virtual void visitNode(Parser::Node &node) = 0;
+        virtual void visitNodeNumber(Parser::NodeNumber &node) = 0;
+        virtual void visitNodeVariableDeclaration(Parser::NodeVariableDeclaration &node) = 0;
+        virtual void visitNodeVariableAssignment(Parser::NodeVariableAssignment &node) = 0;
+        virtual void visitNodeBlockModifier(Parser::NodeBlockModifier &node) = 0;
+        virtual void visitNodeText(Parser::NodeText &node) = 0;
+        virtual void visitNodeReturn(Parser::NodeReturn &node) = 0;
+        virtual void visitNodeUnaryOperator(Parser::NodeUnaryOperator &node) = 0;
+        virtual void visitNodeFunction(Parser::NodeFunction &node) = 0;
+        virtual void visitNodeFunctionCall(Parser::NodeFunctionCall &node) = 0;
+        virtual void visitNodePragma(Parser::NodePragma &node) = 0;
+        virtual void enterNode(Parser::Node &node) = 0;
+        virtual void visitNodeCast(Parser::NodeCast &node) = 0;
+        virtual void visitNodePartial(Parser::NodePartial &node) = 0;
+        virtual void visitNodeMultiBlock(Parser::NodeMultiBlock &node) = 0;
+        virtual void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node) = 0;
+        virtual void visitNodeFor(Parser::NodeFor &node) = 0;
     };
 
     extern std::map<NodeIdentifierIndex, std::shared_ptr<Node>> nodes;

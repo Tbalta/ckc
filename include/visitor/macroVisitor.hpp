@@ -1,11 +1,17 @@
+/**
+ * @file macroVisitor.hpp
+ * @brief Replace partial function definition and partial function call.
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
-#include "../parser.hpp"
 #include "../genericContext.hpp"
 #include "mapVisitor.hpp"
 #include "symbolTable.hpp"
+#include "visitor/baseVisitor.hpp"
 namespace visitor
 {
-    class macroVisitor : public visitor::mapVisitor
+    class macroVisitor : public mapVisitor
     {
     public:
         void visitNodePartial(Parser::NodePartial &node) override;

@@ -1,15 +1,21 @@
+/**
+ * @file typeVisitor.hpp
+ * @brief Ensure that the types are correct
+ * @version 0.1
+ * @date 2024-12-24
+ */
 #pragma once
 
-#include "parser.hpp"
 #include <iterator>
 #include <vector>
 
+#include "visitor/baseVisitor.hpp"
 #include "../genericContext.hpp"
 #include "../contextProvider.hpp"
 namespace visitor
 {
 
-class typeVisitor : public Parser::Visitor
+class typeVisitor : public baseVisitor
 {
     private:
         Context::ContextProvider &contextProvider = Context::ContextProvider::getInstance();
