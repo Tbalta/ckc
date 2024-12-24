@@ -15,7 +15,7 @@ DEPS = $(OBJ:.o=.d)
 
 # compiler
 CXX = g++
-CXXFLAGS = -Wall -g -MMD -Iinclude `llvm-config-15 --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
+CXXFLAGS = -Wall -Werror -g -MMD -Iinclude `llvm-config-15 --cxxflags --ldflags --system-libs --libs core` -std=c++2a -lpthread -lncurses -fexceptions
 
 # CXXFLAGS+=-fsanitize=address
 .PHONY: directories clean compile test CI

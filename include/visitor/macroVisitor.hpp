@@ -23,6 +23,6 @@ namespace visitor
         CKC::SymbolTable symbolTable;
     private:
         genericContext<std::string, Parser::NodeIdentifier> partialFunctionContext;
-        Parser::NodeIdentifier createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall);
+        Parser::NodeIdentifier createBlockFromPartialCall(Parser::NodeFunctionCall &partialCall);
     }; 
 }
