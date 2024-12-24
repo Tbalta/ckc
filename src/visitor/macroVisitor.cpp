@@ -83,7 +83,7 @@ namespace visitor
     };
 
 
-    Parser::NodeIdentifier macroVisitor::createNewBlockFromPartial(Parser::NodeFunctionCall &partialCall)
+    Parser::NodeIdentifier macroVisitor::createBlockFromPartialCall(Parser::NodeFunctionCall &partialCall)
     {
         auto optionalPartialFunction = partialFunctionContext.get(partialCall.name);
         assert(optionalPartialFunction.has_value());
@@ -93,14 +93,10 @@ namespace visitor
         auto partialFunction = optionalPartialFunction.value().get<Parser::NodePartial>();
         assert(partialFunction != nullptr);
         
-        for (auto &arg : partialFunction->arguments)
-        {
-        }
-
-        // Create new variable declaration for every argument
+        // Create variable storing the arguments
         std::map<std::string, std::string> variableReplacements;
         std::vector<Parser::NodeIdentifier> blocks;
-        for (auto i = 0; i < partialFunction->arguments.size(); i++)
+        for (size_t i = 0; i < partialFunction->arguments.size(); i++)
         {
             auto arg = partialFunction->arguments[i];
             auto name = symbolTable.getUniqueName(partialFunction->name + "_" + arg.second + "_");
@@ -116,7 +112,7 @@ namespace visitor
             blocks.push_back(argumentNodeId);
         }
 
-        // Add the linked function call
+        // Call the linked function
         renameVisitor renameVisitor(variableReplacements);
         copyVisitor copyVisitor;
         auto linkedCall = partialFunction->linkedFunction;
@@ -203,7 +199,7 @@ namespace visitor
         auto newID = node.thisNode;
         if (partialFunction.has_value())
         {
-            auto newBlock = createNewBlockFromPartial(node);
+            auto newBlock = createBlockFromPartialCall(node);
             newID = newBlock;
         }
         for (auto &arg : node.arguments)
