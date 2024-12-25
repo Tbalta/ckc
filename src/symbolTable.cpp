@@ -5,6 +5,11 @@ namespace CKC
 
     std::string SymbolTable::getUniqueName(std::string name)
     {
+        if (!has(name))
+        {
+            return name;
+        }
+        
         int i = 0;
         while (genericContext::has(name + std::to_string(i)))
         {
