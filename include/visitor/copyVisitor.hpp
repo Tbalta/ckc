@@ -5,10 +5,10 @@
  * @date 2024-12-24
  */
 #pragma once
-#include "visitor/baseVisitor.hpp"
+#include "parser.hpp"
 namespace visitor
 {
-    class copyVisitor : public baseVisitor
+    class copyVisitor : public Parser::Visitor
     {
     private:
     public:
@@ -32,6 +32,7 @@ namespace visitor
         void visitNodePartial(Parser::NodePartial &node);
         void visitNodeMultiBlock(Parser::NodeMultiBlock &node);
         void visitNodeMultiBlockExpression(Parser::NodeMultiBlockExpression &node);
+        void visitNodeFor(Parser::NodeFor &node);
         copyVisitor(/* args */) = default;
         ~copyVisitor() = default;
     };

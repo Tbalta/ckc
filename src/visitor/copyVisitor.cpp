@@ -149,4 +149,27 @@ namespace visitor
             }
             newCopy=Parser::addNode(newNode);
         }
+        void copyVisitor::visitNodeFor(Parser::NodeFor &node)
+        {
+            auto newNode=node.clone();
+            if (newNode->initialiser.has_value())
+            {
+                newNode->initialiser.value()->accept(*this);
+                newNode->initialiser=newCopy;
+            }
+            if (newNode->condition.has_value())
+            {
+                newNode->condition.value()->accept(*this);
+                newNode->condition=newCopy;
+            }
+            if (newNode->increment.has_value())
+            {
+                newNode->increment.value()->accept(*this);
+                newNode->increment=newCopy;
+            }
+            newNode->body->accept(*this);
+            newNode->body=newCopy;
+            newCopy=Parser::addNode(newNode);
+        }
+        
 }

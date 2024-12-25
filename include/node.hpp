@@ -88,6 +88,10 @@ namespace Parser
         {
             return id < other.id;
         }
+        bool operator==(const NodeIdentifier &other) const
+        {
+            return id == other.id;
+        }
     };
 
     class Node
@@ -108,6 +112,7 @@ namespace Parser
         std::shared_ptr<Node> clone() {
             return std::make_shared<Node>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const;
     };
 
     class NodeExpression : public Node
@@ -121,6 +126,7 @@ namespace Parser
         std::shared_ptr<Node> clone() {
             return std::make_shared<NodeExpression>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeBlockModifier : public Node
@@ -133,7 +139,7 @@ namespace Parser
         std::shared_ptr<NodeBlockModifier> clone() {
             return std::make_shared<NodeBlockModifier>(*this);
         }
-
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeBlock : public Node
@@ -147,6 +153,7 @@ namespace Parser
         std::shared_ptr<Node> clone() {
             return std::make_shared<NodeBlock>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeMultiBlock : public NodeBlock
@@ -159,6 +166,7 @@ namespace Parser
         std::shared_ptr<NodeMultiBlock> clone() {
             return std::make_shared<NodeMultiBlock>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeStatement : public NodeBlock
@@ -171,6 +179,7 @@ namespace Parser
         std::shared_ptr<Node> clone() {
             return std::make_shared<NodeStatement>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeIf : public NodeBlock
@@ -187,6 +196,7 @@ namespace Parser
         std::shared_ptr<NodeIf> clone() {
             return std::make_shared<NodeIf>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeGoto : public NodeStatement
@@ -198,6 +208,7 @@ namespace Parser
         std::shared_ptr<NodeGoto> clone() {
             return std::make_shared<NodeGoto>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeReturn : public NodeStatement
@@ -210,6 +221,7 @@ namespace Parser
         std::shared_ptr<NodeReturn> clone() {
             return std::make_shared<NodeReturn>(*this);
         }
+        virtual bool operator==(const NodeIdentifier other) const override;
     };
 
     class NodeBinOperator : public NodeExpression
@@ -220,6 +232,7 @@ namespace Parser
         Lexer::TokenType op;
         NodeBinOperator(NodeIdentifier left, NodeIdentifier right, Lexer::TokenType op) : left(left), right(right), op(op){};
         virtual void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
 
         bool isLazyOperator()
         {
@@ -259,6 +272,7 @@ namespace Parser
         Lexer::TokenType op;
         NodeUnaryOperator(Lexer::Token token, NodeIdentifier right, Lexer::TokenType op) : NodeExpression(token), right(right), op(op){};
         virtual void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeUnaryOperator> clone() {
             return std::make_shared<NodeUnaryOperator>(*this);
         }
@@ -270,6 +284,7 @@ namespace Parser
         int value;
         NodeNumber(int value, Lexer::Token token) : NodeExpression(token), value(value) {}
         virtual void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeNumber> clone() {
             return std::make_shared<NodeNumber>(*this);
         }
@@ -281,6 +296,7 @@ namespace Parser
         std::string name;
         NodeText(std::string name, Lexer::Token token) : NodeExpression(token), name(name){};
         virtual void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<Node> clone() {
             return std::make_shared<NodeText>(*this);
         }
@@ -298,6 +314,7 @@ namespace Parser
                 this->value = std::move(value.value());
         };
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeVariableDeclaration> clone() {
             return std::make_shared<NodeVariableDeclaration>(*this);
         }
@@ -310,6 +327,7 @@ namespace Parser
         NodeIdentifier value;
         NodeVariableAssignment(Lexer::Token token, std::string name, NodeIdentifier value) : NodeStatement(token), name(name), value(value){};
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeVariableAssignment> clone() {
             return std::make_shared<NodeVariableAssignment>(*this);
         }
@@ -322,6 +340,7 @@ namespace Parser
         std::vector<NodeIdentifier> arguments;
         NodeFunctionCall(Lexer::Token token, std::string name, std::vector<NodeIdentifier> arguments, Lexer::Token closeParen) : NodeExpression(token, closeParen), name(name), arguments(arguments){};
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeFunctionCall> clone() {
             return std::make_shared<NodeFunctionCall>(*this);
         }
@@ -342,6 +361,7 @@ namespace Parser
         }
 
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeFunction> clone() {
             return std::make_shared<NodeFunction>(*this);
         }
@@ -355,6 +375,7 @@ namespace Parser
         NodeIdentifier linkedFunction;
         NodePartial(Lexer::Token token, std::string name, std::vector<std::pair<std::string, std::string>> arguments, NodeIdentifier linkedFunction) : NodeStatement(token), name(name), arguments(arguments), linkedFunction(linkedFunction){};
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodePartial> clone() {
             return std::make_shared<NodePartial>(*this);
         }
@@ -369,6 +390,7 @@ namespace Parser
             this->type = type;
         };
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodeCast> clone() {
             return std::make_shared<NodeCast>(*this);
         }
@@ -382,6 +404,7 @@ namespace Parser
         Lexer::Token targetObject;
         NodePragma(Lexer::Token token, Lexer::TokenType pragmaType, std::string value, Lexer::Token targetObject) : NodeBlock(token), pragmaType(pragmaType), value(value), targetObject(targetObject){};
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         std::shared_ptr<NodePragma> clone() {
             return std::make_shared<NodePragma>(*this);
         }
@@ -396,11 +419,11 @@ namespace Parser
         NodeIdentifier body;
         NodeFor(Lexer::Token token, std::optional<NodeIdentifier> initialiser, std::optional<NodeIdentifier> condition, std::optional<NodeIdentifier> increment, NodeIdentifier body) : NodeBlock(token), initialiser(initialiser), condition(condition), increment(increment), body(body){};
         NodeFor() = default;
-        void accept(Visitor &v) override
-        {
-            NodeBlock::accept(v);
-            v.visitNodeFor(*this);
-        };
+        virtual bool operator==(const NodeIdentifier other) const override; 
+        void accept(Visitor &v) override;
+        std::shared_ptr<NodeFor> clone() {
+            return std::make_shared<NodeFor>(*this);
+        }
     };
 
     class NodeMultiBlockExpression : public NodeExpression
@@ -408,10 +431,14 @@ namespace Parser
     public:
         std::vector<NodeIdentifier> blocks;
         void accept(Visitor &v) override;
+        virtual bool operator==(const NodeIdentifier other) const override;
         NodeMultiBlockExpression(std::vector<NodeIdentifier> blocks) : blocks(blocks){};
         std::shared_ptr<NodeMultiBlockExpression> clone() {
             return std::make_shared<NodeMultiBlockExpression>(*this);
         }
     };
+
+    bool compareNodes(const NodeIdentifier &a, const NodeIdentifier &b);
+
 
 }

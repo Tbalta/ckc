@@ -12,5 +12,7 @@ namespace mappingFunction
     
     Parser::NodeIdentifier desugarFor(Parser::Node &node);
     Parser::NodeIdentifier desugarFor(Parser::NodeIdentifier node);
-    // 
+
+    Parser::NodeIdentifier cloneNode(Parser::Node &node);
+    Parser::NodeIdentifier cloneNode(Parser::NodeIdentifier node);
 }

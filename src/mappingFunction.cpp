@@ -58,7 +58,15 @@ namespace mappingFunction
     }
 
 
-    
+    Parser::NodeIdentifier cloneNode(Parser::NodeIdentifier node)
+    {
+        return addNode(node->clone());
+    }
+
+    Parser::NodeIdentifier cloneNode(Parser::Node &node)
+    {
+        return addNode(node.clone());
+    }
 
 
 }
