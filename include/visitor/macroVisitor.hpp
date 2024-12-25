@@ -1,7 +1,7 @@
 /**
  * @file macroVisitor.hpp
  * @brief Replace partial function definition and partial function call.
- * @version 0.1
+ * @version 0.2
  * @date 2024-12-24
  */
 #pragma once

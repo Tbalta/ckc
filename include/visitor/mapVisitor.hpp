@@ -16,11 +16,11 @@ namespace visitor
     class mapVisitor : public Parser::Visitor
     {
     protected:
-        Parser::NodeIdentifier newNode;
         std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction = [](Parser::Node &node)
         { return node.thisNode; };
 
     public:
+        Parser::NodeIdentifier newNode;
         mapVisitor() = default;
         mapVisitor(std::function<Parser::NodeIdentifier(Parser::Node &)> mapFunction) : mapFunction(mapFunction) {};
         void visitNodeIf(Parser::NodeIf &node) override;

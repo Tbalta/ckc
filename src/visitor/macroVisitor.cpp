@@ -1,5 +1,6 @@
 #include "visitor/macroVisitor.hpp"
 #include "visitor/copyVisitor.hpp"
+#include "visitor/closureVisitor.hpp"
 #include "symbolTable.hpp"
 #include <cassert>
 namespace visitor
@@ -14,50 +15,6 @@ namespace visitor
                 node.name = variableReplacements[node.name];
         }
         renameVisitor(std::map<std::string, std::string> variableReplacements) : variableReplacements(variableReplacements) {}
-    };
-
-    class findClosure : public baseVisitor
-    {
-    private:
-
-    public:
-        bool inClosure = false;
-        std::set<std::string> constantVariables;
-        std::set<Parser::NodeIdentifier> closureExpressions;
-        findClosure(std::set<std::string> constantVariables) : constantVariables(constantVariables) {}
-        findClosure() = default;
-        void visitNodeBinOperator(Parser::NodeBinOperator &node)
-        {
-            inClosure = false;
-            node.left->accept(*this);
-            auto leftClosure = inClosure;
-            inClosure = false;
-            node.right->accept(*this);
-            auto rightClosure = inClosure;
-
-            inClosure = leftClosure && rightClosure;
-            if (inClosure)
-                return;
-            if (leftClosure)
-                closureExpressions.insert(node.left);
-            if (rightClosure)
-                closureExpressions.insert(node.right);
-        }
-
-        void visitNodeText(Parser::NodeText &node)
-        {
-            inClosure = constantVariables.find(node.name) == constantVariables.end();
-        }
-
-        void visitNodeNumber(Parser::NodeNumber &node)
-        {
-            inClosure = false;
-        }
-
-        void visitNodeFunctionCall(Parser::NodeFunctionCall &node)
-        {
-            inClosure = true;
-        }
     };
 
     class findSymbolVisitor : public baseVisitor
@@ -144,23 +101,13 @@ namespace visitor
         {
             constantVariables.insert(arg.second);
         }
-
-        auto linkedFunction = node.linkedFunction.get<Parser::NodeFunctionCall>();
-        
-        findClosure findClosure(constantVariables);
-        for (auto &arg : linkedFunction->arguments)
-        {
-            findClosure.inClosure = false;
-            arg->accept(findClosure);
-            if (findClosure.inClosure)
-                findClosure.closureExpressions.insert(arg);
-        }
-        
-
+   
         // Create variable for every closure expression
+        closureVisitor closureVisitor(constantVariables);
+        closureVisitor.visit(node.linkedFunction);
         std::map<Parser::NodeIdentifier, std::string> closureVariables;
         std::vector<Parser::NodeIdentifier> blocks;
-        for (auto &closureExpression : findClosure.closureExpressions)
+        for (auto &closureExpression : closureVisitor.getExpressionsInClosure())
         {
             copyVisitor copyVisitor;
             closureExpression->accept(copyVisitor);

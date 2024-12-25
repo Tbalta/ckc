@@ -31,4 +31,11 @@ namespace Parser
     NodeIdentifier addNode(std::shared_ptr<Node> node);
     void replaceNode(NodeIdentifier node, NodeIdentifier newNode);
 
+    template <typename nodeType, typename... T>
+    NodeIdentifier createNode(T&&... args)
+    {
+        return addNode(std::make_shared<nodeType>(std::forward<T>(args)...));
+    }
+
+
 }
