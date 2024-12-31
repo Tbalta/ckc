@@ -46,9 +46,11 @@ namespace Lexer
         KEYWORD_PARTIAL,
         KEYWORD_PRAGMA,
         KEYWORD_FOR,
+        KEYWORD_WHILE,
         SYMBOL_NAME,
         KEYWORD_ENDFUNCTION,
         KEYWORD_ENDFOR,
+        KEYWORD_ENDWHILE,
         TYPE,
         SEMICOLON,
         TOKEN_EOF,
@@ -93,6 +95,8 @@ namespace Lexer
         {TokenType::KEYWORD_PARTIAL, "partial"},
         {TokenType::KEYWORD_FOR, "for"},
         {TokenType::KEYWORD_ENDFOR, "endfor"},
+        {TokenType::KEYWORD_WHILE, "while"},
+        {TokenType::KEYWORD_ENDWHILE, "endwhile"},
 
         // File structure
         {TokenType::TOKEN_EOF, ""},
