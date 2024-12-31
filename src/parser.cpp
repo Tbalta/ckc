@@ -310,6 +310,21 @@ namespace Parser
         return addNode(node);
     }
 
+    NodeIdentifier parseWhile(Lexer::TokenStream &ts)
+    {
+        auto whileToken = ts.get();
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_OPEN, ts);
+        std::optional<NodeIdentifier> initialiser = std::nullopt;
+        std::optional<NodeIdentifier> condition = std::nullopt;
+        condition = parseExpression(ts);
+        std::optional<NodeIdentifier> increment = std::nullopt;
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::PARENTHESIS_CLOSE, ts);
+        auto body = parseMultiBlock(ts);
+        CHECK_TOKEN_AND_RETURN(ts.get(), Lexer::TokenType::KEYWORD_ENDWHILE, ts);
+        auto node = std::make_shared<NodeFor>(whileToken, initialiser, condition, increment, body);
+        return addNode(node);
+    }
+
     NodeIdentifier parseBlock(Lexer::TokenStream &ts)
     {
         Lexer::Token t = ts.peek();
@@ -334,6 +349,9 @@ namespace Parser
             break;
         case Lexer::TokenType::KEYWORD_FOR:
             block = parseFor(ts);
+            break;
+        case Lexer::TokenType::KEYWORD_WHILE:
+            block = parseWhile(ts);
             break;
         default:
             block = parseStatement(ts);

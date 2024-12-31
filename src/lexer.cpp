@@ -201,6 +201,7 @@ namespace Lexer
             TokenType::KEYWORD_FI,
             TokenType::KEYWORD_ENDFUNCTION,
             TokenType::KEYWORD_ENDFOR,
+            TokenType::KEYWORD_ENDWHILE,
             TokenType::TOKEN_EOF};
         return endMultiBlock.find(type) != endMultiBlock.end();
     }

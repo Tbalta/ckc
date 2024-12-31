@@ -13,7 +13,7 @@ block: Set of statements.
 ```bnf
 <entry> ::= <multi_block>
 <multi_block> ::= <block>*
-<block> ::= <block_modifier>* (<block_if> | <block_for> | <statement> | <pragma> | <function_def>)
+<block> ::= <block_modifier>* (<block_if> | <block_for> | <block_while> | <statement> | <pragma> | <function_def>)
 <statement> ::= <inline_statement> ";"
 <inline_statement> ::= <variable_declaration> | <assignment> | <goto> | <return> | <partial_function>
 
@@ -54,6 +54,7 @@ block: Set of statements.
 <block_modifier> ::= "#" ( <named_block> )
 <named_block> ::= <identifier>
 <block_for> ::= "for" "(" <inline_statement> ";" <expression> ";" <inline_statement> ")" <multi_block> "endfor"
+<block_while> ::= "while" "(" <expression> ")" <multi_block> "endwhile"
 ```
 
 # 1st Step
