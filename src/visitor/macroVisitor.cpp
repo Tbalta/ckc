@@ -42,6 +42,7 @@ namespace visitor
 
     Parser::NodeIdentifier macroVisitor::createBlockFromPartialCall(Parser::NodeFunctionCall &partialCall)
     {
+
         auto optionalPartialFunction = partialFunctionContext.get(partialCall.name);
         assert(optionalPartialFunction.has_value());
         if (!optionalPartialFunction.has_value())
@@ -51,26 +52,29 @@ namespace visitor
         assert(partialFunction != nullptr);
         
         // Create variable storing the arguments
-        std::map<std::string, std::string> variableReplacements;
+        std::map<std::string, std::string> argumentNameMap;
         std::vector<Parser::NodeIdentifier> blocks;
         for (size_t i = 0; i < partialFunction->arguments.size(); i++)
         {
             auto arg = partialFunction->arguments[i];
-            auto name = symbolTable.getUniqueName(partialFunction->name + "_" + arg.second + "_");
-            variableReplacements[arg.second] = name;
+            auto argumentName = arg.second;
+            auto uniqueArgumentName = symbolTable.getUniqueInternalName(partialFunction->name + "_" + argumentName);
+
+            argumentNameMap[argumentName] = uniqueArgumentName;
 
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
                 partialCall.firstToken.value(),
                 arg.first,
-                name,
+                uniqueArgumentName,
                 std::move(partialCall.arguments[i]));
+
             auto argumentNodeId = Parser::addNode(newVariable);
-            symbolTable.add(name, argumentNodeId);
+            symbolTable.add(uniqueArgumentName, argumentNodeId);
             blocks.push_back(argumentNodeId);
         }
 
         // Call the linked function
-        renameVisitor renameVisitor(variableReplacements);
+        renameVisitor renameVisitor(argumentNameMap);
         copyVisitor copyVisitor;
         auto linkedCall = partialFunction->linkedFunction;
         linkedCall->accept(copyVisitor);
@@ -112,7 +116,7 @@ namespace visitor
             copyVisitor copyVisitor;
             closureExpression->accept(copyVisitor);
             assert(copyVisitor.newCopy.id != -1);
-            auto name = symbolTable.getUniqueName(node.name + "_");
+            auto name = symbolTable.getUniqueInternalName(node.name);
             auto newVariable = std::make_shared<Parser::NodeVariableDeclaration>(
                 node.firstToken.value(),
                 closureExpression.get<Parser::NodeExpression>()->type,

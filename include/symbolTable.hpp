@@ -10,7 +10,7 @@ namespace CKC
     {
         public:
         void removeSymbol(std::string name);
-        std::string getUniqueName(std::string name);
+        std::string getUniqueInternalName(std::string name);
     };
 
 }

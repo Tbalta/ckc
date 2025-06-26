@@ -3,19 +3,16 @@
 namespace CKC
 {
 
-    std::string SymbolTable::getUniqueName(std::string name)
+    std::string SymbolTable::getUniqueInternalName(std::string baseName)
     {
-        if (!has(name))
-        {
-            return name;
-        }
-        
         int i = 0;
-        while (genericContext::has(name + std::to_string(i)))
+        auto newName = "_" + baseName + "_" + std::to_string(i);
+
+        while (genericContext::has(newName))
         {
             i++;
+            newName = baseName + "_" + std::to_string(i);
         }
-        auto newName = name + std::to_string(i);
         return newName;
     }
 }
