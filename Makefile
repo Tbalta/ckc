@@ -60,8 +60,12 @@ CI: directories $(TARGET) $(TEST_EXEC)
 	./$(TEST_EXEC)
 	./test/functional/step1.sh ./$(TARGET)
 	./test/functional/step2.sh ./$(TARGET)
+
 docker:
-	docker build -t ckc .docker/
+	docker-compose -f .docker/docker-compose.yml run --rm --remove-orphans ckc
+
+docker-build:
+	docker-compose -f .docker/docker-compose.yml build ckc
 
 -include $(DEPS)
 -include $(TEST_DEPS)
