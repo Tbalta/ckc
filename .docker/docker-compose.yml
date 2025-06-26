@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  ckc:
+    container_name: ckc
+    image: ckc-docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TERM=xterm-256color
+    volumes:
+      - ..:/ckc
+    working_dir: /ckc
